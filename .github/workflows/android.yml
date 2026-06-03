@@ -26,6 +26,15 @@ jobs:
         run: chmod +x gradlew
         continue-on-error: true # Just in case gradlew is missing or permissions are set differently
 
+      - name: Decode Debug Keystore
+        run: |
+          if [ -f debug.keystore.base64 ]; then
+            base64 --decode debug.keystore.base64 > debug.keystore
+          else
+            echo "debug.keystore.base64 not found, creating a new dummy keystore for local build..."
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
       - name: Build with Gradle
         run: gradle assembleDebug # We can run standard gradle in environments where gradlew might not be configured, or use ./gradlew if available
 
