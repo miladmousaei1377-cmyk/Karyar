@@ -15,6 +15,8 @@ import androidx.compose.ui.res.painterResource
 import com.example.R
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -83,15 +87,15 @@ fun TaskApp(viewModel: TaskViewModel) {
                     painter = painterResource(id = R.drawable.img_karyar_logo),
                     contentDescription = "کاریار",
                     modifier = Modifier
-                        .size(160.dp)
-                        .clip(RoundedCornerShape(32.dp))
+                        .size(240.dp)
+                        .clip(RoundedCornerShape(48.dp))
                 )
                 Spacer(modifier = Modifier.height(28.dp))
                 Text(
                     text = "کاریار",
                     fontWeight = FontWeight.Bold,
                     fontSize = 38.sp,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -177,6 +181,7 @@ fun TaskApp(viewModel: TaskViewModel) {
 
     // Enforce RTL Layout Direction globally in current view
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        val focusManager = LocalFocusManager.current
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
@@ -198,8 +203,8 @@ fun TaskApp(viewModel: TaskViewModel) {
                                 painter = painterResource(id = R.drawable.img_karyar_logo),
                                 contentDescription = "کاریار logo",
                                 modifier = Modifier
-                                    .size(52.dp)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .size(80.dp)
+                                    .clip(RoundedCornerShape(16.dp))
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
@@ -207,7 +212,7 @@ fun TaskApp(viewModel: TaskViewModel) {
                                     "کاریار",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 19.sp,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     "مدیریت هوشمند کارها",
@@ -276,7 +281,7 @@ fun TaskApp(viewModel: TaskViewModel) {
                         
                         Spacer(modifier = Modifier.weight(1f))
                         Text(
-                            text = "توسعه‌دهنده: میلاد موسایی",
+                            text = "نسخه ۱.۱.۰",
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -291,7 +296,7 @@ fun TaskApp(viewModel: TaskViewModel) {
                         LargeTopAppBar(
                             colors = TopAppBarDefaults.largeTopAppBarColors(
                                 containerColor = MaterialTheme.colorScheme.background,
-                                titleContentColor = MaterialTheme.colorScheme.primary
+                                titleContentColor = MaterialTheme.colorScheme.onBackground
                             ),
                             title = {
                                 Column {
@@ -331,6 +336,11 @@ fun TaskApp(viewModel: TaskViewModel) {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
+                            .verticalScroll(rememberScrollState())
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) { focusManager.clearFocus() }
                             .padding(24.dp)
                             .background(MaterialTheme.colorScheme.background),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -343,20 +353,12 @@ fun TaskApp(viewModel: TaskViewModel) {
                         ) {
                             Column(modifier = Modifier.padding(20.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.img_karyar_logo),
-                                        contentDescription = "کاریار",
-                                        modifier = Modifier
-                                            .size(50.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                    )
-                                    Spacer(modifier = Modifier.width(16.dp))
                                     Column {
                                         Text(
                                             text = "وضعیت کارهای ثبت شده",
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 16.sp,
-                                            color = MaterialTheme.colorScheme.primary
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = JalaliCalendarHelper.getPersianTodayString(),
@@ -371,12 +373,12 @@ fun TaskApp(viewModel: TaskViewModel) {
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text(text = activeTasks.size.toString(), fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
+                                        Text(text = activeTasks.size.toString(), fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
                                         Text(text = "کارهای فعال", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Box(modifier = Modifier.width(1.dp).height(40.dp).background(MaterialTheme.colorScheme.outlineVariant))
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text(text = completedTasks.size.toString(), fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.secondary)
+                                        Text(text = completedTasks.size.toString(), fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
                                         Text(text = "کارهای انجام شده", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Box(modifier = Modifier.width(1.dp).height(40.dp).background(MaterialTheme.colorScheme.outlineVariant))
@@ -423,7 +425,7 @@ fun TaskApp(viewModel: TaskViewModel) {
                             )
                         }
                         
-                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.height(24.dp))
                         
                         Button(
                             onClick = {
@@ -455,7 +457,7 @@ fun TaskApp(viewModel: TaskViewModel) {
                         LargeTopAppBar(
                             colors = TopAppBarDefaults.largeTopAppBarColors(
                                 containerColor = MaterialTheme.colorScheme.background,
-                                titleContentColor = MaterialTheme.colorScheme.primary
+                                titleContentColor = MaterialTheme.colorScheme.onBackground
                             ),
                             title = {
                                 Column {
@@ -527,6 +529,10 @@ fun TaskApp(viewModel: TaskViewModel) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { focusManager.clearFocus() }
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 // Task list Progress statistics bar
@@ -550,7 +556,7 @@ fun TaskApp(viewModel: TaskViewModel) {
                             Text(
                                 "پیشرفت امروز شما",
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 15.sp
                             )
                             Spacer(modifier = Modifier.height(6.dp))
@@ -914,63 +920,69 @@ fun TaskApp(viewModel: TaskViewModel) {
             AlertDialog(
                 onDismissRequest = { showAboutDialog = false },
                 title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_karyar_logo),
-                            contentDescription = "کاریار",
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "درباره کاریار",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.img_karyar_logo),
+                                contentDescription = "کاریار",
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "درباره کاریار",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 },
                 text = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(
-                            text = "نرم‌افزار مدیریت کارهای روزانه «کاریار» یک دستیار هوشمند و نوین برای پیگیری وظایف، اهداف و برنامه‌ریزی‌های روزانه شماست.",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            lineHeight = 22.sp
-                        )
-                        Text(
-                            text = "🎯 برنامه‌ریزی ساده و سریع کارها\n⏰ تنظیم هشدارهای یادآوری دقیق\n📊 خروجی‌های گزارش‌دهی PDF و Excel و متنی\n💚 طراحی منطبق بر استانداردهای بومی و مذهبی کشور",
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 20.sp
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                        Text(
-                            text = "توسعه‌دهنده: میلاد موسایی",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Text(
-                            text = "نسخه ۱.۱.۰ (ارائه‌شده در سال ۱۴۰۵)",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
+                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text = "نرم‌افزار مدیریت کارهای روزانه «کاریار» یک دستیار هوشمند و نوین برای پیگیری وظایف، اهداف و برنامه‌ریزی‌های روزانه شماست.",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                lineHeight = 22.sp
+                            )
+                            Text(
+                                text = "🎯 برنامه‌ریزی ساده و سریع کارها\n⏰ تنظیم هشدارهای یادآوری دقیق\n📊 خروجی‌های گزارش‌دهی PDF و Excel و متنی",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 20.sp
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            Text(
+                                text = "توسعه‌دهنده: میلاد موسایی",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "نسخه ۱.۱.۰ (ارائه‌شده در سال ۱۴۰۵)",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
                     }
                 },
                 confirmButton = {
-                    Button(
-                        onClick = { showAboutDialog = false },
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("بستن", fontWeight = FontWeight.Bold)
+                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                        Button(
+                            onClick = { showAboutDialog = false },
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("بستن", fontWeight = FontWeight.Bold)
+                        }
                     }
                 },
                 shape = RoundedCornerShape(20.dp)
@@ -1237,37 +1249,6 @@ fun TaskCard(
                                 color = priorityColor,
                                 fontWeight = FontWeight.Bold
                             )
-                        }
-
-                        // Reminder status badge (bell icon)
-                        if (task.reminderTime != null) {
-                            val isActive = task.isReminderActive && !task.isCompleted
-                            val formattedTime = formatTimestampToPersian(task.reminderTime)
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(
-                                        if (isActive) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-                                        else MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Notifications,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(11.dp),
-                                        tint = if (isActive) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                    )
-                                    Spacer(modifier = Modifier.width(3.dp))
-                                    Text(
-                                        text = "یادآوری: $formattedTime",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = if (isActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                    )
-                                }
-                            }
                         }
                     }
                 }
@@ -2038,6 +2019,26 @@ fun ShamsiDatePickerDialog(
     }
 }
 
+fun saveToDownloads(context: android.content.Context, file: File): Boolean {
+    return try {
+        val fileName = file.name
+        val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
+        if (!downloadsDir.exists()) {
+            downloadsDir.mkdirs()
+        }
+        val destFile = File(downloadsDir, fileName)
+        file.inputStream().use { input ->
+            destFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        true
+    } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}
+
 fun shareFile(context: android.content.Context, file: File, mimeType: String, title: String) {
     try {
         val authority = "${context.packageName}.fileprovider"
@@ -2111,6 +2112,10 @@ fun exportToTxtFile(context: android.content.Context, activeTasks: List<TaskEnti
         fos.write(builder.toString().toByteArray(Charsets.UTF_8))
         fos.close()
         
+        val saved = saveToDownloads(context, file)
+        if (saved) {
+            Toast.makeText(context, "فایل گزارش با موفقیت در پوشه دانلودها (Downloads) حافظه دستگاه ذخیره شد.", Toast.LENGTH_LONG).show()
+        }
         shareFile(context, file, "text/plain", "ارسال لایحه گزارش کاریار")
     } catch (e: Exception) {
         Toast.makeText(context, "خطا در تولید فایل متنی: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
@@ -2160,6 +2165,10 @@ fun exportToExcelFile(context: android.content.Context, activeTasks: List<TaskEn
         fos.write(builder.toString().toByteArray(Charsets.UTF_8))
         fos.close()
         
+        val saved = saveToDownloads(context, file)
+        if (saved) {
+            Toast.makeText(context, "فایل اکسل با موفقیت در پوشه دانلودها (Downloads) حافظه دستگاه ذخیره شد.", Toast.LENGTH_LONG).show()
+        }
         shareFile(context, file, "text/comma-separated-values", "ارسال خروجی اکسل کاریار")
     } catch (e: Exception) {
         Toast.makeText(context, "خطا در تولید فایل اکسل: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
@@ -2392,6 +2401,10 @@ fun exportToPdfFile(context: android.content.Context, activeTasks: List<TaskEnti
         pdfDoc.close()
         fos.close()
         
+        val saved = saveToDownloads(context, file)
+        if (saved) {
+            Toast.makeText(context, "فایل PDF با موفقیت در پوشه دانلودها (Downloads) حافظه دستگاه ذخیره شد.", Toast.LENGTH_LONG).show()
+        }
         shareFile(context, file, "application/pdf", "ارسال لایحه pdf کاریار")
     } catch (e: Exception) {
         Toast.makeText(context, "خطا در تولید فایل PDF: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
