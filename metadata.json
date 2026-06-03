@@ -1,0 +1,6 @@
+{
+  "name": "کاریار",
+  "description": "برنامه حرفه‌ای مدیریت کارهای روزانه و شخصی کاریار با قابلیت دریافت انواع گزارشات PDF و Excel و Text و کاملاً راست‌چین",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
