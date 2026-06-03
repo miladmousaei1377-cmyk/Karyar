@@ -77,41 +77,14 @@ fun TaskApp(viewModel: TaskViewModel) {
                 .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(24.dp)
-            ) {
-                // Main Rounded Karyar leaf logo
-                Image(
-                    painter = painterResource(id = R.drawable.img_karyar_logo),
-                    contentDescription = "کاریار",
-                    modifier = Modifier
-                        .size(240.dp)
-                        .clip(RoundedCornerShape(48.dp))
-                )
-                Spacer(modifier = Modifier.height(28.dp))
-                Text(
-                    text = "کاریار",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 38.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "کار‌یار، مدیریت ساده و هوشمندانه کارهای روزانه",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(56.dp))
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 3.dp,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
+            // Main Rounded Karyar logo (shows only the logo during first load)
+            Image(
+                painter = painterResource(id = R.drawable.img_karyar_logo),
+                contentDescription = "کاریار",
+                modifier = Modifier
+                    .size(220.dp)
+                    .clip(RoundedCornerShape(44.dp))
+            )
         }
     } else {
         // UI state
@@ -345,46 +318,46 @@ fun TaskApp(viewModel: TaskViewModel) {
                             .background(MaterialTheme.colorScheme.background),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Summary Stats Card on Reports Page
+                        // Summary Stats Card on Reports Page (made smaller as requested)
                         Surface(
-                            shape = RoundedCornerShape(24.dp),
+                            shape = RoundedCornerShape(16.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Column(modifier = Modifier.padding(20.dp)) {
+                            Column(modifier = Modifier.padding(12.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Column {
                                         Text(
                                             text = "وضعیت کارهای ثبت شده",
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp,
+                                            fontSize = 14.sp,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = JalaliCalendarHelper.getPersianTodayString(),
-                                            fontSize = 11.sp,
+                                            fontSize = 10.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(10.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text(text = activeTasks.size.toString(), fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
-                                        Text(text = "کارهای فعال", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(text = activeTasks.size.toString(), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
+                                        Text(text = "کارهای فعال", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
-                                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(MaterialTheme.colorScheme.outlineVariant))
+                                    Box(modifier = Modifier.width(1.dp).height(30.dp).background(MaterialTheme.colorScheme.outlineVariant))
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text(text = completedTasks.size.toString(), fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
-                                        Text(text = "کارهای انجام شده", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(text = completedTasks.size.toString(), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
+                                        Text(text = "کارهای انجام شده", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
-                                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(MaterialTheme.colorScheme.outlineVariant))
+                                    Box(modifier = Modifier.width(1.dp).height(30.dp).background(MaterialTheme.colorScheme.outlineVariant))
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                        Text(text = (activeTasks.size + completedTasks.size).toString(), fontWeight = FontWeight.Bold, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
-                                        Text(text = "کل کارها", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(text = (activeTasks.size + completedTasks.size).toString(), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
+                                        Text(text = "کل کارها", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
                             }
@@ -425,7 +398,7 @@ fun TaskApp(viewModel: TaskViewModel) {
                             )
                         }
                         
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         
                         Button(
                             onClick = {
@@ -657,6 +630,8 @@ fun TaskApp(viewModel: TaskViewModel) {
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -1510,14 +1485,19 @@ fun AddTaskDialog(
                             OutlinedTextField(
                                 value = title,
                                 onValueChange = { title = it },
-                                label = { Text("عنوان کار (مثلاً: خرید داروی مادربزرگ)") },
-                                placeholder = { Text("عنوانی برای کار خود بنویسید") },
+                                label = { Text("عنوان کار (مثلاً: خرید داروی مادربزرگ)", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                placeholder = { Text("عنوانی برای کار خود بنویسید", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
                                 singleLine = true,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .testTag("input_title"),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
                         }
@@ -1527,13 +1507,21 @@ fun AddTaskDialog(
                             OutlinedTextField(
                                 value = description,
                                 onValueChange = { description = it },
-                                label = { Text("توضیحات بیشتر (اختیاری)") },
-                                placeholder = { Text("جزئیات بیشتر کار خود را بنویسید...") },
+                                label = { Text("توضیحات بیشتر (اختیاری)", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                placeholder = { Text("جزئیات بیشتر کار خود را بنویسید...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
                                 minLines = 2,
                                 maxLines = 4,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .testTag("input_description")
+                                    .testTag("input_description"),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
                         }
 
@@ -2107,7 +2095,6 @@ fun exportToTxtFile(context: android.content.Context, activeTasks: List<TaskEnti
         }
         
         builder.append("تولید شده توسط نرم‌افزار «کاریار»\n")
-        builder.append("توسعه‌دهنده: میلاد موسایی")
         
         fos.write(builder.toString().toByteArray(Charsets.UTF_8))
         fos.close()
@@ -2381,7 +2368,7 @@ fun exportToPdfFile(context: android.content.Context, activeTasks: List<TaskEnti
             isAntiAlias = true
         }
         val footerLayout = @Suppress("DEPRECATION") StaticLayout(
-            "کاریار  |  سامانه دستیار ارزیابی کارها  |  برنامه نویسی شده توسط میلاد موسایی",
+            "کاریار  |  سامانه دستیار ارزیابی کارها",
             footerPaint,
             480,
             Layout.Alignment.ALIGN_CENTER,

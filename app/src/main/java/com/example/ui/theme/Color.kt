@@ -12,10 +12,10 @@ val SecondaryTeal = Color(0xFF4CAF50) // Brighter green accent
 val SecondaryTealContainer = Color(0xFFC8E6C9)
 val OnSecondaryTealContainer = Color(0xFF1A1C18)
 
-val LightBackground = Color(0xFFF9FBF9) // Extremely clean light background with a touch of green
+val LightBackground = Color(0xFFFFFFFF) // Extremely clean light background
 val LightSurface = Color(0xFFFFFFFF)
-val LightOnBackground = Color(0xFF1A1C18) // High-contrast professional near-black text color
-val LightOnSurface = Color(0xFF1A1C18) // High-contrast professional near-black text color
+val LightOnBackground = Color(0xFF000000) // Pure black text color
+val LightOnSurface = Color(0xFF000000) // Pure black text color
 
 // Dark Theme Curated Palette - High-contrast Dark Green Theme
 val DarkPrimary = Color(0xFF81C784) // Soft green for dark theme readability
