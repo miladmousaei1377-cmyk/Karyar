@@ -5,26 +5,37 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.agent.presentation.AgentChatScreen
+import com.example.agent.presentation.AgentViewModel
 import com.example.ui.screens.TaskApp
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewModel.TaskViewModel
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: TaskViewModel by viewModels()
+    private val taskViewModel: TaskViewModel by viewModels()
+    private val agentViewModel: AgentViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Setup full Edge-to-Edge display design
         enableEdgeToEdge()
-        
         setContent {
-            val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
-            
+            val isDarkMode by taskViewModel.isDarkMode.collectAsStateWithLifecycle()
+            var showAgent by remember { mutableStateOf(false) }
+
             MyApplicationTheme(darkTheme = isDarkMode) {
-                TaskApp(viewModel = viewModel)
+                if (showAgent) {
+                    AgentChatScreen(
+                        viewModel = agentViewModel,
+                        onBack = { showAgent = false }
+                    )
+                } else {
+                    TaskApp(
+                        viewModel = taskViewModel,
+                        onNavigateToAgent = { showAgent = true }
+                    )
+                }
             }
         }
     }

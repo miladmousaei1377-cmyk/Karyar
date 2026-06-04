@@ -17,6 +17,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE reminderTime IS NOT NULL AND isReminderActive = 1 AND isCompleted = 0 ORDER BY reminderTime ASC")
     fun getActiveReminders(): Flow<List<TaskEntity>>
 
+    @Query("SELECT * FROM tasks ORDER BY isCompleted ASC, priority DESC, createdAt DESC")
+    suspend fun getAllTasksOnce(): List<TaskEntity>
+
     @Query("SELECT * FROM tasks WHERE id = :id")
     suspend fun getTaskById(id: Int): TaskEntity?
 

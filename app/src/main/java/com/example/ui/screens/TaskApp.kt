@@ -59,7 +59,7 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskApp(viewModel: TaskViewModel) {
+fun TaskApp(viewModel: TaskViewModel, onNavigateToAgent: () -> Unit = {}) {
     val context = LocalContext.current
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
     
@@ -219,8 +219,25 @@ fun TaskApp(viewModel: TaskViewModel) {
                         )
                         
                         Spacer(modifier = Modifier.height(6.dp))
-                        
-                        // Button 2: About Us (درباره ما)
+
+                        // Button 2: AI Agent (دستیار هوشمند)
+                        NavigationDrawerItem(
+                            icon = { Icon(Icons.Default.SmartToy, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                            label = { Text("دستیار هوشمند", fontWeight = FontWeight.Bold, fontSize = 14.sp) },
+                            selected = false,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                onNavigateToAgent()
+                            },
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = Color.Transparent
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // Button 3: About Us (درباره ما)
                         NavigationDrawerItem(
                             icon = { Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                             label = { Text("درباره ما", fontWeight = FontWeight.Bold, fontSize = 14.sp) },

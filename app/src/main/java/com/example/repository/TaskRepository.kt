@@ -10,6 +10,8 @@ class TaskRepository(private val taskDao: TaskDao) {
     val completedTasks: Flow<List<TaskEntity>> = taskDao.getCompletedTasks()
     val activeReminders: Flow<List<TaskEntity>> = taskDao.getActiveReminders()
 
+    suspend fun getAllTasksOnce(): List<TaskEntity> = taskDao.getAllTasksOnce()
+
     suspend fun getTaskById(id: Int): TaskEntity? {
         return taskDao.getTaskById(id)
     }
