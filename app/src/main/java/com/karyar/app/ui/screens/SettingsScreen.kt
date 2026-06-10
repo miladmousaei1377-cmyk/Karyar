@@ -19,7 +19,8 @@ import com.karyar.app.viewmodel.TaskViewModel
 @Composable
 fun SettingsScreen(
     viewModel: TaskViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToAbout: () -> Unit = {}
 ) {
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -117,30 +118,14 @@ fun SettingsScreen(
             Spacer(Modifier.height(8.dp))
 
             // About Section
-            SettingsSectionHeader(title = "درباره")
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
+            SettingsSectionHeader(title = "اطلاعات")
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                 Column {
-                    SettingsInfoRow(
-                        icon = Icons.Default.Apps,
-                        title = "نام برنامه",
-                        value = "کاریار"
-                    )
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingsInfoRow(
+                    SettingsActionRow(
                         icon = Icons.Default.Info,
-                        title = "نسخه",
-                        value = "۱.۰.۰"
-                    )
-                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingsInfoRow(
-                        icon = Icons.Default.Code,
-                        title = "توسعه‌دهنده",
-                        value = "میلاد موسایی"
+                        title = "درباره کاریار",
+                        subtitle = "اطلاعات برنامه و توسعه‌دهنده",
+                        onClick = onNavigateToAbout
                     )
                 }
             }

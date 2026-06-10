@@ -1,0 +1,66 @@
+package com.karyar.app.ui.screens
+
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.karyar.app.R
+import kotlinx.coroutines.delay
+
+@Composable
+fun SplashScreen(onFinished: () -> Unit) {
+    val scale = remember { Animatable(0.5f) }
+    val alpha = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        scale.animateTo(1f, animationSpec = tween(600, easing = EaseOutBack))
+        alpha.animateTo(1f, animationSpec = tween(400))
+        delay(1200)
+        onFinished()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = R.mipmap.ic_launcher),
+                contentDescription = "کاریار",
+                modifier = Modifier
+                    .size(120.dp)
+                    .scale(scale.value)
+                    .alpha(alpha.value)
+            )
+            Spacer(Modifier.height(24.dp))
+            Text(
+                text = "کاریار",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.alpha(alpha.value)
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "مدیریت کارهای روزانه",
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.alpha(alpha.value)
+            )
+        }
+    }
+}
