@@ -35,6 +35,12 @@ interface TaskDao {
     @Query("SELECT COUNT(*) FROM tasks")
     fun getTotalTaskCount(): Flow<Int>
 
+    @Query("SELECT * FROM tasks ORDER BY isCompleted ASC, createdAt DESC")
+    suspend fun getAllTasksList(): List<Task>
+
+    @Query("SELECT * FROM tasks WHERE reminderTime IS NOT NULL AND isCompleted = 0 ORDER BY reminderTime ASC")
+    fun getTasksWithReminders(): Flow<List<Task>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: Task): Long
 

@@ -1,0 +1,82 @@
+package com.karyar.app.utils
+
+import android.content.Context
+import android.content.Intent
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
+import android.net.Uri
+import android.os.Environment
+import androidx.core.content.FileProvider
+import com.karyar.app.data.Task
+import com.karyar.app.data.TaskCategory
+import com.karyar.app.data.TaskPriority
+import java.io.File
+import java.io.FileOutputStream
+
+object ExportHelper {
+
+    fun exportText(context: Context, tasks: List<Task>): Uri? {
+        val sb = StringBuilder()
+        sb.appendLine("کاریار - گزارش کارها")
+        sb.appendLine("تاریخ: ${JalaliCalendar.toShortDate(System.currentTimeMillis())}")
+        sb.appendLine("=".repeat(40))
+        val active = tasks.filter { !it.isCompleted }
+        val done = tasks.filter { it.isCompleted }
+        sb.appendLine("\nکارهای فعال (${active.size})")
+        sb.appendLine("-".repeat(30))
+        active.forEach { t ->
+            sb.appendLine("• ${t.title}")
+            if (t.description.isNotBlank()) sb.appendLine("  ${t.description}")
+            sb.appendLine("  دسته: ${TaskCategory.valueOf(t.category).label}  اولویت: ${TaskPriority.valueOf(t.priority).label}")
+            t.dueDate?.let { sb.appendLine("  سررسید: ${JalaliCalendar.toShortDate(it)}") }
+        }
+        sb.appendLine("\nانجام‌شده (${done.size})")
+        sb.appendLine("-".repeat(30))
+        done.forEach { t -> sb.appendLine("✓ ${t.title}") }
+        return write(context, "karyar_tasks.txt", sb.toString().toByteArray(Charsets.UTF_8))
+    }
+
+    fun exportCsv(context: Context, tasks: List<Task>): Uri? {
+        val sb = StringBuilder()
+        sb.appendLine("عنوان,توضیحات,دسته,اولویت,وضعیت,سررسید,ثبت")
+        tasks.forEach { t ->
+            val status = if (t.isCompleted) "انجام شده" else "فعال"
+            val due = t.dueDate?.let { JalaliCalendar.toShortDate(it) } ?: ""
+            val created = JalaliCalendar.toShortDate(t.createdAt)
+            sb.appendLine("\"${t.title}\",\"${t.description}\",\"${TaskCategory.valueOf(t.category).label}\",\"${TaskPriority.valueOf(t.priority).label}\",\"$status\",\"$due\",\"$created\"")
+        }
+        return write(context, "karyar_tasks.csv", sb.toString().toByteArray(Charsets.UTF_8))
+    }
+
+    fun exportPdf(context: Context, tasks: List<Task>): Uri? = try {
+        val doc = PdfDocument()
+        val page = doc.startPage(PdfDocument.PageInfo.Builder(595,842,1).create())
+        val canvas = page.canvas
+        val paint = Paint().apply { textSize=13f; isAntiAlias=true; color=android.graphics.Color.BLACK }
+        val title = Paint().apply { textSize=18f; isAntiAlias=true; isFakeBoldText=true; color=android.graphics.Color.rgb(46,125,50) }
+        var y=50f
+        canvas.drawText("کاریار - گزارش کارها", 50f, y, title); y+=28f
+        canvas.drawText("تاریخ: ${JalaliCalendar.toShortDate(System.currentTimeMillis())}", 50f, y, paint); y+=22f
+        canvas.drawLine(50f,y,545f,y,paint); y+=22f
+        val active=tasks.filter{!it.isCompleted}; val done=tasks.filter{it.isCompleted}
+        paint.isFakeBoldText=true; canvas.drawText("کارهای فعال (${active.size})",50f,y,paint); y+=20f; paint.isFakeBoldText=false
+        active.forEach { t -> if(y<800f){ canvas.drawText("• ${t.title}",60f,y,paint); y+=18f } }
+        y+=8f; paint.isFakeBoldText=true; canvas.drawText("انجام‌شده (${done.size})",50f,y,paint); y+=20f; paint.isFakeBoldText=false
+        done.forEach { t -> if(y<800f){ canvas.drawText("✓ ${t.title}",60f,y,paint); y+=18f } }
+        doc.finishPage(page)
+        val file=File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),"karyar_tasks.pdf")
+        doc.writeTo(FileOutputStream(file)); doc.close()
+        FileProvider.getUriForFile(context,"${context.packageName}.fileprovider",file)
+    } catch(e:Exception){ null }
+
+    private fun write(context: Context, name: String, data: ByteArray): Uri? = try {
+        val file=File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),name)
+        file.writeBytes(data)
+        FileProvider.getUriForFile(context,"${context.packageName}.fileprovider",file)
+    } catch(e:Exception){ null }
+
+    fun openFile(context: Context, uri: Uri, mime: String) {
+        val i=Intent(Intent.ACTION_VIEW).apply { setDataAndType(uri,mime); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+        context.startActivity(Intent.createChooser(i,"باز کردن با..."))
+    }
+}

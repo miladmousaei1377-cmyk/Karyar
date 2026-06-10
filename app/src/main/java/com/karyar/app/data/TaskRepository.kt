@@ -13,6 +13,8 @@ class TaskRepository(private val dao: TaskDao) {
     fun getCompletedTaskCount(): Flow<Int> = dao.getCompletedTaskCount()
     fun getTotalTaskCount(): Flow<Int> = dao.getTotalTaskCount()
     suspend fun getTaskById(id: Long): Task? = dao.getTaskById(id)
+    suspend fun getAllTasksList(): List<Task> = dao.getAllTasksList()
+    fun getTasksWithReminders(): Flow<List<Task>> = dao.getTasksWithReminders()
     suspend fun insertTask(task: Task): Long = dao.insertTask(task)
     suspend fun updateTask(task: Task) = dao.updateTask(task)
     suspend fun deleteTask(task: Task) = dao.deleteTask(task)

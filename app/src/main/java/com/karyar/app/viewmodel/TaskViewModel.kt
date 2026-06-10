@@ -28,6 +28,17 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private val _filterState = MutableStateFlow(FilterState())
     val filterState: StateFlow<FilterState> = _filterState.asStateFlow()
 
+    // Unfiltered flows for home screen sections
+    val activeTasks: StateFlow<List<Task>> = repository.getActiveTasks()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val completedTasks: StateFlow<List<Task>> = repository.getCompletedTasks()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val reminderTasks: StateFlow<List<Task>> = repository.getTasksWithReminders()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Filtered tasks for search
     val tasks: StateFlow<List<Task>> = _filterState.flatMapLatest { filter ->
         when {
             filter.searchQuery.isNotBlank() -> repository.searchTasks(filter.searchQuery)
@@ -36,11 +47,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             filter.showCompleted -> repository.getCompletedTasks()
             else -> repository.getActiveTasks()
         }
-    }.map { list ->
-        val filter = _filterState.value
-        if (filter.selectedCategory != null && filter.searchQuery.isNotBlank()) {
-            list.filter { it.category == filter.selectedCategory.name }
-        } else list
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val activeCount: StateFlow<Int> = repository.getActiveTaskCount()
@@ -50,42 +56,22 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     val totalCount: StateFlow<Int> = repository.getTotalTaskCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    fun setDarkMode(enabled: Boolean) = viewModelScope.launch {
-        prefsRepo.setDarkMode(enabled)
-    }
-
-    fun setSearchQuery(query: String) {
-        _filterState.update { it.copy(searchQuery = query) }
-    }
-
-    fun setCategory(category: TaskCategory?) {
-        _filterState.update { it.copy(selectedCategory = category) }
-    }
-
-    fun setPriority(priority: TaskPriority?) {
-        _filterState.update { it.copy(selectedPriority = priority) }
-    }
-
-    fun setShowCompleted(show: Boolean) {
-        _filterState.update { it.copy(showCompleted = show) }
-    }
-
-    fun clearFilters() {
-        _filterState.value = FilterState()
-    }
+    fun setDarkMode(enabled: Boolean) = viewModelScope.launch { prefsRepo.setDarkMode(enabled) }
+    fun setSearchQuery(q: String) { _filterState.update { it.copy(searchQuery = q) } }
+    fun setCategory(c: TaskCategory?) { _filterState.update { it.copy(selectedCategory = c) } }
+    fun setPriority(p: TaskPriority?) { _filterState.update { it.copy(selectedPriority = p) } }
+    fun setShowCompleted(b: Boolean) { _filterState.update { it.copy(showCompleted = b) } }
+    fun clearFilters() { _filterState.value = FilterState() }
 
     fun addTask(task: Task) = viewModelScope.launch {
         val id = repository.insertTask(task)
-        task.reminderTime?.let { time ->
-            AlarmHelper.scheduleAlarm(getApplication(), id, task.title, time)
-        }
+        task.reminderTime?.let { AlarmHelper.scheduleAlarm(getApplication(), id, task.title, it) }
     }
 
     fun updateTask(task: Task) = viewModelScope.launch {
         repository.updateTask(task.copy(updatedAt = System.currentTimeMillis()))
-        task.reminderTime?.let { time ->
-            AlarmHelper.scheduleAlarm(getApplication(), task.id, task.title, time)
-        } ?: AlarmHelper.cancelAlarm(getApplication(), task.id)
+        task.reminderTime?.let { AlarmHelper.scheduleAlarm(getApplication(), task.id, task.title, it) }
+            ?: AlarmHelper.cancelAlarm(getApplication(), task.id)
     }
 
     fun toggleComplete(task: Task) = viewModelScope.launch {
@@ -97,9 +83,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         repository.deleteTask(task)
     }
 
-    fun deleteAllCompleted() = viewModelScope.launch {
-        repository.deleteAllCompleted()
-    }
+    fun deleteAllCompleted() = viewModelScope.launch { repository.deleteAllCompleted() }
 
     suspend fun getTaskById(id: Long): Task? = repository.getTaskById(id)
+    suspend fun getAllTasksForExport(): List<Task> = repository.getAllTasksList()
 }
