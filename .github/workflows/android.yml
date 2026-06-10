@@ -3,8 +3,12 @@ name: Android CI/CD
 on:
   push:
     branches: [ "main", "claude/**" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -35,29 +39,35 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug
 
       - name: Build release APK
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleRelease
+
+      - name: Rename APKs
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk out/karyar-debug.apk
+          cp app/build/outputs/apk/release/app-release.apk out/karyar.apk
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: karyar-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 14
+          path: out/karyar-debug.apk
+          retention-days: 30
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: karyar-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
-          retention-days: 14
+          path: out/karyar.apk
+          retention-days: 30
 
   release:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
       - name: Checkout code
@@ -84,36 +94,36 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build release APK
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleRelease
 
-      - name: Get version name
-        id: version
+      - name: Rename APK
         run: |
-          VERSION=$(grep 'versionName' app/build.gradle.kts | sed 's/.*versionName = "\(.*\)".*/\1/')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$VERSION-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+          mkdir -p out
+          cp app/build/outputs/apk/release/app-release.apk out/karyar-${{ github.ref_name }}.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: کاریار ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref_name }}
+          name: "کاریار ${{ github.ref_name }}"
           body: |
             ## کاریار - مدیریت کارهای روزانه
 
             ### ویژگی‌های این نسخه:
-            - مدیریت کارهای روزانه با دسته‌بندی و اولویت‌بندی
-            - یادآور هوشمند با AlarmManager
-            - پشتیبانی از حالت تاریک
-            - آمار و گزارش‌های کامل
+            - صفحه اصلی با طراحی جدید و پیشرفت‌نما
+            - چند انتخابی کارها (Long Press) با گزینه انجام شد / حذف
+            - تقویم شمسی (جلالی) در تمام تاریخ‌ها
+            - حالت تاریک و روشن بدون reload صفحه
+            - یادآور هوشمند با اعلان
+            - آمار و گزارش‌گیری
+            - خروجی متن، اکسل و PDF
             - پشتیبانی کامل از زبان فارسی (RTL)
 
             ### نحوه نصب:
-            ۱. فایل APK را دانلود کنید
-            ۲. نصب از منابع ناشناخته را در تنظیمات دستگاه فعال کنید
-            ۳. فایل APK را نصب کنید
-          files: |
-            app/build/outputs/apk/release/app-release.apk
+            ۱. فایل **karyar-${{ github.ref_name }}.apk** را دانلود کنید
+            ۲. در تنظیمات گوشی، «نصب از منابع ناشناخته» را فعال کنید
+            ۳. فایل APK را باز کرده و نصب کنید
+          files: out/karyar-${{ github.ref_name }}.apk
           draft: false
           prerelease: false
         env:
