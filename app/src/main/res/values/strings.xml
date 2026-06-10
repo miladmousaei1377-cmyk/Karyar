@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">کاریار</string>
+    <string name="add_task">افزودن کار</string>
+    <string name="edit_task">ویرایش کار</string>
+    <string name="delete_task">حذف کار</string>
+    <string name="task_title">عنوان کار</string>
+    <string name="task_description">توضیحات</string>
+    <string name="task_category">دسته‌بندی</string>
+    <string name="task_priority">اولویت</string>
+    <string name="task_due_date">تاریخ سررسید</string>
+    <string name="task_reminder">یادآوری</string>
+    <string name="save">ذخیره</string>
+    <string name="cancel">انصراف</string>
+    <string name="settings">تنظیمات</string>
+    <string name="statistics">آمار</string>
+    <string name="dark_mode">حالت تاریک</string>
+    <string name="notification_channel_name">یادآوری کارها</string>
+    <string name="notification_channel_description">یادآوری کارهای روزانه</string>
+    <string name="reminder_notification_title">کاریار - یادآوری</string>
+    <string name="search_placeholder">جستجو...</string>
+    <string name="filter_all">همه</string>
+    <string name="filter_completed">انجام‌شده</string>
+    <string name="category_work">کاری</string>
+    <string name="category_personal">شخصی</string>
+    <string name="category_shopping">خرید</string>
+    <string name="category_health">سلامت</string>
+    <string name="category_education">آموزش</string>
+    <string name="category_other">سایر</string>
+    <string name="priority_high">مهم</string>
+    <string name="priority_medium">متوسط</string>
+    <string name="priority_low">کم</string>
+    <string name="empty_state_no_tasks">هیچ کاری وجود ندارد</string>
+    <string name="empty_state_hint">روی + بزنید تا اولین کار خود را اضافه کنید</string>
+</resources>
