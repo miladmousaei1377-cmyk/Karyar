@@ -190,16 +190,6 @@ fun TaskListScreen(
                     modifier = Modifier.fillMaxWidth(),
                     containerColor = MaterialTheme.colorScheme.background,
                     contentColor = MaterialTheme.colorScheme.primary,
-                    indicator = { tabPositions ->
-                        Box(
-                            Modifier
-                                .tabIndicatorOffset(tabPositions[selectedTab])
-                                .height(3.dp)
-                                .padding(horizontal = 24.dp)
-                                .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                                .background(MaterialTheme.colorScheme.primary)
-                        )
-                    }
                 ) {
                     tabs.forEachIndexed { index, (label, icon, count) ->
                         Tab(
@@ -444,7 +434,7 @@ fun KaryarNavigationDrawer(
             selected = false,
             onClick = { android.os.Process.killProcess(android.os.Process.myPid()) },
             icon = { Icon(Icons.Default.ExitToApp, null, tint = MaterialTheme.colorScheme.error) },
-            modifier = Modifier.padding(horizontal = 12.dp, bottom = 16.dp)
+            modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 16.dp)
         )
     }
 }
