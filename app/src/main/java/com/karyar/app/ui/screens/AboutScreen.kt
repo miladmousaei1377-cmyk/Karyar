@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.karyar.app.R
@@ -66,10 +65,6 @@ fun AboutScreen(onNavigateBack: () -> Unit) {
                     AboutRow(Icons.Default.Person, "توسعه‌دهنده", "میلاد موسایی")
                     HorizontalDivider()
                     AboutRow(Icons.Default.Email, "پشتیبانی", "miladmousaei1377@gmail.com")
-                    HorizontalDivider()
-                    AboutRow(Icons.Default.Code, "تکنولوژی", "Kotlin · Jetpack Compose · Room")
-                    HorizontalDivider()
-                    AboutRow(Icons.Default.Android, "حداقل اندروید", "Android 8.0 (API 26)")
                 }
             }
 
@@ -86,7 +81,6 @@ fun AboutScreen(onNavigateBack: () -> Unit) {
             }
 
             Spacer(Modifier.height(16.dp))
-            Text("ساخته شده با ❤️ در ایران", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
     }
 }

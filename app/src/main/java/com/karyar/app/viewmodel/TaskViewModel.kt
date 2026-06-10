@@ -84,6 +84,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteAllCompleted() = viewModelScope.launch { repository.deleteAllCompleted() }
+    fun deleteAllActive() = viewModelScope.launch { repository.deleteAllActive() }
 
     suspend fun getTaskById(id: Long): Task? = repository.getTaskById(id)
     suspend fun getAllTasksForExport(): List<Task> = repository.getAllTasksList()
