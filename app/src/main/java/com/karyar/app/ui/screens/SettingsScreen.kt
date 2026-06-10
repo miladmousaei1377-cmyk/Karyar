@@ -140,7 +140,7 @@ fun SettingsScreen(
                     SettingsInfoRow(
                         icon = Icons.Default.Code,
                         title = "توسعه‌دهنده",
-                        value = "تیم کاریار"
+                        value = "میلاد موسایی"
                     )
                 }
             }

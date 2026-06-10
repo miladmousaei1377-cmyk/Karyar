@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,7 +23,9 @@ import com.karyar.app.data.TaskPriority
 import com.karyar.app.ui.theme.PriorityHigh
 import com.karyar.app.ui.theme.PriorityLow
 import com.karyar.app.ui.theme.PriorityMedium
+import com.karyar.app.utils.ExportHelper
 import com.karyar.app.viewmodel.TaskViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,16 +33,15 @@ fun StatisticsScreen(
     viewModel: TaskViewModel,
     onNavigateBack: () -> Unit
 ) {
-    val tasks by viewModel.tasks.collectAsState()
+    val activeTasks by viewModel.activeTasks.collectAsState()
+    val completedTasks by viewModel.completedTasks.collectAsState()
     val activeCount by viewModel.activeCount.collectAsState()
     val completedCount by viewModel.completedCount.collectAsState()
     val totalCount by viewModel.totalCount.collectAsState()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    val allTasks = remember(tasks, activeCount, completedCount) { tasks }
-
-    LaunchedEffect(Unit) {
-        viewModel.clearFilters()
-    }
+    val allTasks = remember(activeTasks, completedTasks) { activeTasks + completedTasks }
 
     val completionRate = if (totalCount > 0) {
         (completedCount.toFloat() / totalCount.toFloat()) * 100f
@@ -220,6 +222,52 @@ fun StatisticsScreen(
                         )
                         if (priority != TaskPriority.LOW) {
                             Spacer(Modifier.height(8.dp))
+                        }
+                    }
+                }
+            }
+
+            // Export section
+            Text("خروجی گزارش", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(2.dp)) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("دانلود گزارش کارها:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Text export button
+                        Button(modifier = Modifier.weight(1f), onClick = {
+                            scope.launch {
+                                val tasks = viewModel.getAllTasksForExport()
+                                val uri = ExportHelper.exportText(context, tasks)
+                                uri?.let { ExportHelper.openFile(context, it, "text/plain") }
+                            }
+                        }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)) {
+                            Icon(Icons.Default.Description, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("متن", fontSize = 13.sp)
+                        }
+                        // CSV/Excel export button
+                        Button(modifier = Modifier.weight(1f), onClick = {
+                            scope.launch {
+                                val tasks = viewModel.getAllTasksForExport()
+                                val uri = ExportHelper.exportCsv(context, tasks)
+                                uri?.let { ExportHelper.openFile(context, it, "text/csv") }
+                            }
+                        }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0))) {
+                            Icon(Icons.Default.TableChart, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("اکسل", fontSize = 13.sp)
+                        }
+                        // PDF export button
+                        Button(modifier = Modifier.weight(1f), onClick = {
+                            scope.launch {
+                                val tasks = viewModel.getAllTasksForExport()
+                                val uri = ExportHelper.exportPdf(context, tasks)
+                                uri?.let { ExportHelper.openFile(context, it, "application/pdf") }
+                            }
+                        }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                            Icon(Icons.Default.PictureAsPdf, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("PDF", fontSize = 13.sp)
                         }
                     }
                 }

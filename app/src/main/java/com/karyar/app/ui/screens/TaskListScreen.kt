@@ -1,7 +1,6 @@
 package com.karyar.app.ui.screens
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,11 +28,10 @@ import com.karyar.app.data.TaskPriority
 import com.karyar.app.ui.theme.PriorityHigh
 import com.karyar.app.ui.theme.PriorityLow
 import com.karyar.app.ui.theme.PriorityMedium
+import com.karyar.app.utils.JalaliCalendar
 import com.karyar.app.viewmodel.FilterState
 import com.karyar.app.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,37 +42,61 @@ fun TaskListScreen(
     onNavigateToStats: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
-    val tasks by viewModel.tasks.collectAsState()
-    val filterState by viewModel.filterState.collectAsState()
+    val activeTasks by viewModel.activeTasks.collectAsState()
+    val completedTasks by viewModel.completedTasks.collectAsState()
+    val reminderTasks by viewModel.reminderTasks.collectAsState()
+    val searchResults by viewModel.tasks.collectAsState()
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     val activeCount by viewModel.activeCount.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var showSearch by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
+    var deleteAllActiveDialog by remember { mutableStateOf(false) }
+    var deleteAllCompletedDialog by remember { mutableStateOf(false) }
+
+    if (deleteAllActiveDialog) {
+        AlertDialog(
+            onDismissRequest = { deleteAllActiveDialog = false },
+            icon = { Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text("حذف همه کارهای فعال") },
+            text = { Text("آیا مطمئن هستید؟ این عمل قابل بازگشت نیست.") },
+            confirmButton = {
+                Button(onClick = { activeTasks.forEach { viewModel.deleteTask(it) }; deleteAllActiveDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text("حذف همه") }
+            },
+            dismissButton = { TextButton(onClick = { deleteAllActiveDialog = false }) { Text("انصراف") } }
+        )
+    }
+
+    if (deleteAllCompletedDialog) {
+        AlertDialog(
+            onDismissRequest = { deleteAllCompletedDialog = false },
+            icon = { Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text("حذف همه انجام‌شده‌ها") },
+            text = { Text("آیا مطمئن هستید؟") },
+            confirmButton = {
+                Button(onClick = { viewModel.deleteAllCompleted(); deleteAllCompletedDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text("حذف همه") }
+            },
+            dismissButton = { TextButton(onClick = { deleteAllCompletedDialog = false }) { Text("انصراف") } }
+        )
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             KaryarNavigationDrawer(
                 activeCount = activeCount,
-                onTasksClick = {
-                    scope.launch { drawerState.close() }
-                    viewModel.clearFilters()
-                },
-                onStatsClick = {
-                    scope.launch { drawerState.close() }
-                    onNavigateToStats()
-                },
-                onSettingsClick = {
-                    scope.launch { drawerState.close() }
-                    onNavigateToSettings()
-                },
-                onAboutClick = {
-                    scope.launch { drawerState.close() }
-                }
+                onTasksClick = { scope.launch { drawerState.close() }; viewModel.clearFilters(); showSearch = false; searchText = "" },
+                onStatsClick = { scope.launch { drawerState.close() }; onNavigateToStats() },
+                onSettingsClick = { scope.launch { drawerState.close() }; onNavigateToSettings() },
+                onAboutClick = { scope.launch { drawerState.close() } }
             )
         }
     ) {
@@ -85,119 +108,306 @@ fun TaskListScreen(
                             if (showSearch) {
                                 TextField(
                                     value = searchText,
-                                    onValueChange = { text ->
-                                        searchText = text
-                                        viewModel.setSearchQuery(text)
-                                    },
-                                    placeholder = { Text("جستجو...") },
+                                    onValueChange = { searchText = it; viewModel.setSearchQuery(it) },
+                                    placeholder = { Text("جستجو در کارها...", color = MaterialTheme.colorScheme.onPrimary.copy(0.7f)) },
                                     singleLine = true,
                                     colors = TextFieldDefaults.colors(
                                         focusedContainerColor = Color.Transparent,
                                         unfocusedContainerColor = Color.Transparent,
                                         focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent
+                                        unfocusedIndicatorColor = Color.Transparent,
+                                        focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        cursorColor = MaterialTheme.colorScheme.onPrimary
                                     ),
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             } else {
-                                Text(
-                                    text = "کاریار",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp
-                                )
+                                Text("کاریار", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = MaterialTheme.colorScheme.onPrimary)
                             }
                         },
                         navigationIcon = {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(Icons.Default.Menu, contentDescription = "منو")
+                                Icon(Icons.Default.Menu, "منو", tint = MaterialTheme.colorScheme.onPrimary)
                             }
                         },
                         actions = {
                             IconButton(onClick = {
                                 showSearch = !showSearch
-                                if (!showSearch) {
-                                    searchText = ""
-                                    viewModel.setSearchQuery("")
-                                }
+                                if (!showSearch) { searchText = ""; viewModel.setSearchQuery("") }
                             }) {
-                                Icon(
-                                    if (showSearch) Icons.Default.Close else Icons.Default.Search,
-                                    contentDescription = "جستجو"
-                                )
+                                Icon(if (showSearch) Icons.Default.Close else Icons.Default.Search, "جستجو", tint = MaterialTheme.colorScheme.onPrimary)
                             }
                             IconButton(onClick = { viewModel.setDarkMode(!isDarkMode) }) {
-                                Icon(
-                                    if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
-                                    contentDescription = "حالت تاریک"
-                                )
+                                Icon(if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode, "تم", tint = MaterialTheme.colorScheme.onPrimary)
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.primary,
-                            titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                            titleContentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     )
-                    FilterBar(
-                        filterState = filterState,
-                        onPrioritySelected = { viewModel.setPriority(it) },
-                        onCategorySelected = { viewModel.setCategory(it) },
-                        onShowCompleted = { viewModel.setShowCompleted(it) },
-                        onClearFilters = { viewModel.clearFilters() }
-                    )
+                    if (!showSearch) {
+                        FilterBar(filterState = filterState,
+                            onPrioritySelected = { viewModel.setPriority(it) },
+                            onCategorySelected = { viewModel.setCategory(it) },
+                            onShowCompleted = { viewModel.setShowCompleted(it) },
+                            onClearFilters = { viewModel.clearFilters() })
+                    }
                 }
             },
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = onAddTask,
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "افزودن کار",
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
+                FloatingActionButton(onClick = onAddTask, containerColor = MaterialTheme.colorScheme.primary) {
+                    Icon(Icons.Default.Add, "افزودن", tint = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                if (tasks.isEmpty()) {
-                    EmptyState(filterState = filterState)
-                } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(tasks, key = { it.id }) { task ->
-                            TaskCard(
-                                task = task,
-                                onToggleComplete = { viewModel.toggleComplete(task) },
-                                onEdit = { onEditTask(task.id) },
-                                onDelete = {
-                                    viewModel.deleteTask(task)
-                                    scope.launch {
-                                        val result = snackbarHostState.showSnackbar(
-                                            message = "کار حذف شد",
-                                            actionLabel = "بازگردانی",
-                                            duration = SnackbarDuration.Short
-                                        )
-                                        if (result == SnackbarResult.ActionPerformed) {
-                                            viewModel.addTask(task)
-                                        }
-                                    }
+        ) { padding ->
+            if (showSearch && searchText.isNotBlank()) {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxSize().padding(padding)
+                ) {
+                    item { Text("${searchResults.size} نتیجه یافت شد", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    items(searchResults, key = { it.id }) { task ->
+                        HomeTaskCard(task = task,
+                            onToggleComplete = { viewModel.toggleComplete(task) },
+                            onEdit = { onEditTask(task.id) },
+                            onDelete = {
+                                viewModel.deleteTask(task)
+                                scope.launch {
+                                    val r = snackbarHostState.showSnackbar("کار حذف شد", "بازگردانی", duration = SnackbarDuration.Short)
+                                    if (r == SnackbarResult.ActionPerformed) viewModel.addTask(task)
                                 }
-                            )
-                        }
-                        item { Spacer(Modifier.height(80.dp)) }
+                            },
+                            showEdit = !task.isCompleted)
+                    }
+                    item { Spacer(Modifier.height(80.dp)) }
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize().padding(padding)
+                ) {
+                    item {
+                        TaskSection(
+                            title = "کارهای انجام نشده",
+                            icon = Icons.Default.RadioButtonUnchecked,
+                            color = MaterialTheme.colorScheme.primary,
+                            tasks = activeTasks,
+                            showEdit = true,
+                            onEdit = { onEditTask(it) },
+                            onDelete = { task ->
+                                viewModel.deleteTask(task)
+                                scope.launch {
+                                    val r = snackbarHostState.showSnackbar("کار حذف شد", "بازگردانی", duration = SnackbarDuration.Short)
+                                    if (r == SnackbarResult.ActionPerformed) viewModel.addTask(task)
+                                }
+                            },
+                            onToggleComplete = { viewModel.toggleComplete(it) },
+                            onDeleteAll = { deleteAllActiveDialog = true },
+                            emptyText = "هیچ کار فعالی وجود ندارد"
+                        )
+                    }
+                    item {
+                        TaskSection(
+                            title = "انجام شده‌ها",
+                            icon = Icons.Default.CheckCircle,
+                            color = PriorityLow,
+                            tasks = completedTasks,
+                            showEdit = false,
+                            onEdit = {},
+                            onDelete = { task ->
+                                viewModel.deleteTask(task)
+                                scope.launch {
+                                    val r = snackbarHostState.showSnackbar("کار حذف شد", "بازگردانی", duration = SnackbarDuration.Short)
+                                    if (r == SnackbarResult.ActionPerformed) viewModel.addTask(task)
+                                }
+                            },
+                            onToggleComplete = { viewModel.toggleComplete(it) },
+                            onDeleteAll = { deleteAllCompletedDialog = true },
+                            emptyText = "هنوز کاری انجام نشده"
+                        )
+                    }
+                    item {
+                        TaskSection(
+                            title = "یادآوری‌ها",
+                            icon = Icons.Default.NotificationsActive,
+                            color = PriorityMedium,
+                            tasks = reminderTasks,
+                            showEdit = true,
+                            onEdit = { onEditTask(it) },
+                            onDelete = { task ->
+                                viewModel.deleteTask(task)
+                                scope.launch {
+                                    val r = snackbarHostState.showSnackbar("کار حذف شد", "بازگردانی", duration = SnackbarDuration.Short)
+                                    if (r == SnackbarResult.ActionPerformed) viewModel.addTask(task)
+                                }
+                            },
+                            onToggleComplete = { viewModel.toggleComplete(it) },
+                            onDeleteAll = { reminderTasks.forEach { t -> viewModel.updateTask(t.copy(reminderTime = null)) } },
+                            emptyText = "هیچ یادآوری‌ای تنظیم نشده"
+                        )
+                    }
+                    item { Spacer(Modifier.height(80.dp)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TaskSection(
+    title: String,
+    icon: ImageVector,
+    color: Color,
+    tasks: List<Task>,
+    showEdit: Boolean,
+    onEdit: (Long) -> Unit,
+    onDelete: (Task) -> Unit,
+    onToggleComplete: (Task) -> Unit,
+    onDeleteAll: () -> Unit,
+    emptyText: String
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val LIMIT = 3
+    val displayed = if (expanded || tasks.size <= LIMIT) tasks else tasks.take(LIMIT)
+    val hasMore = tasks.size > LIMIT
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column {
+            // Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(color.copy(alpha = 0.08f))
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    Modifier.size(38.dp).clip(RoundedCornerShape(10.dp)).background(color.copy(0.15f)),
+                    contentAlignment = Alignment.Center
+                ) { Icon(icon, null, tint = color, modifier = Modifier.size(22.dp)) }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
+                    Text("${tasks.size} مورد", style = MaterialTheme.typography.labelSmall, color = color)
+                }
+                if (tasks.isNotEmpty()) {
+                    TextButton(onClick = onDeleteAll, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                        Icon(Icons.Default.DeleteSweep, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("حذف همه", style = MaterialTheme.typography.labelSmall)
                     }
                 }
+            }
+            HorizontalDivider(color = color.copy(alpha = 0.15f))
+
+            if (tasks.isEmpty()) {
+                Column(
+                    Modifier.fillMaxWidth().padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("✓", fontSize = 28.sp)
+                    Spacer(Modifier.height(6.dp))
+                    Text(emptyText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    displayed.forEach { task ->
+                        HomeTaskCard(task = task,
+                            onToggleComplete = { onToggleComplete(task) },
+                            onEdit = { onEdit(task.id) },
+                            onDelete = { onDelete(task) },
+                            showEdit = showEdit)
+                    }
+                }
+                if (hasMore) {
+                    HorizontalDivider(Modifier.padding(horizontal = 10.dp), color = MaterialTheme.colorScheme.outline.copy(0.2f))
+                    TextButton(
+                        onClick = { expanded = !expanded },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)
+                    ) {
+                        Text(if (expanded) "نمایش کمتر" else "مشاهده همه (${tasks.size})", color = color, style = MaterialTheme.typography.labelLarge)
+                        Spacer(Modifier.width(4.dp))
+                        Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = color, modifier = Modifier.size(18.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeTaskCard(
+    task: Task,
+    onToggleComplete: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    showEdit: Boolean
+) {
+    val priorityColor = when (TaskPriority.valueOf(task.priority)) {
+        TaskPriority.HIGH -> PriorityHigh
+        TaskPriority.MEDIUM -> PriorityMedium
+        TaskPriority.LOW -> PriorityLow
+    }
+    val category = TaskCategory.valueOf(task.category)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        tonalElevation = 1.dp
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(Modifier.width(3.dp).height(42.dp).clip(RoundedCornerShape(2.dp)).background(priorityColor))
+            Spacer(Modifier.width(6.dp))
+            Checkbox(
+                checked = task.isCompleted,
+                onCheckedChange = { onToggleComplete() },
+                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary),
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = task.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                    color = if (task.isCompleted) MaterialTheme.colorScheme.onSurface.copy(0.5f) else MaterialTheme.colorScheme.onSurface
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("${category.icon} ${category.label}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    task.dueDate?.let { date ->
+                        val overdue = date < System.currentTimeMillis() && !task.isCompleted
+                        Text("📅 ${JalaliCalendar.toShortDate(date)}", style = MaterialTheme.typography.labelSmall,
+                            color = if (overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    task.reminderTime?.let {
+                        Icon(Icons.Default.Notifications, null, Modifier.size(12.dp), tint = PriorityMedium)
+                        Text(JalaliCalendar.toDateTimeString(it), style = MaterialTheme.typography.labelSmall, color = PriorityMedium)
+                    }
+                }
+            }
+            if (showEdit) {
+                IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Edit, "ویرایش", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Delete, "حذف", Modifier.size(17.dp), tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -211,76 +421,24 @@ fun KaryarNavigationDrawer(
     onSettingsClick: () -> Unit,
     onAboutClick: () -> Unit
 ) {
-    ModalDrawerSheet(
-        modifier = Modifier.width(280.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(24.dp)
-        ) {
+    ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+        Box(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primary).padding(24.dp)) {
             Column {
-                Text(
-                    text = "کاریار",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("کاریار", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
-                Text(
-                    text = "مدیریت کارهای روزانه",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                )
+                Text("مدیریت کارهای روزانه", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary.copy(0.8f))
                 Spacer(Modifier.height(8.dp))
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
-                ) {
-                    Text(
-                        text = "$activeCount کار فعال",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.onPrimary.copy(0.2f)) {
+                    Text("$activeCount کار فعال", Modifier.padding(horizontal = 12.dp, vertical = 4.dp), color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
-
         Spacer(Modifier.height(8.dp))
-
-        NavigationDrawerItem(
-            label = { Text("کارها") },
-            selected = true,
-            onClick = onTasksClick,
-            icon = { Icon(Icons.Default.CheckBox, contentDescription = null) },
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
-        NavigationDrawerItem(
-            label = { Text("آمار") },
-            selected = false,
-            onClick = onStatsClick,
-            icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
-        NavigationDrawerItem(
-            label = { Text("تنظیمات") },
-            selected = false,
-            onClick = onSettingsClick,
-            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
-
-        Divider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
-
-        NavigationDrawerItem(
-            label = { Text("درباره کاریار") },
-            selected = false,
-            onClick = onAboutClick,
-            icon = { Icon(Icons.Default.Info, contentDescription = null) },
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
+        NavigationDrawerItem(label = { Text("کارها") }, selected = true, onClick = onTasksClick, icon = { Icon(Icons.Default.CheckBox, null) }, modifier = Modifier.padding(horizontal = 12.dp))
+        NavigationDrawerItem(label = { Text("آمار و گزارش") }, selected = false, onClick = onStatsClick, icon = { Icon(Icons.Default.BarChart, null) }, modifier = Modifier.padding(horizontal = 12.dp))
+        NavigationDrawerItem(label = { Text("تنظیمات") }, selected = false, onClick = onSettingsClick, icon = { Icon(Icons.Default.Settings, null) }, modifier = Modifier.padding(horizontal = 12.dp))
+        HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
+        NavigationDrawerItem(label = { Text("درباره کاریار") }, selected = false, onClick = onAboutClick, icon = { Icon(Icons.Default.Info, null) }, modifier = Modifier.padding(horizontal = 12.dp))
     }
 }
 
@@ -292,256 +450,34 @@ fun FilterBar(
     onShowCompleted: (Boolean) -> Unit,
     onClearFilters: () -> Unit
 ) {
-    val hasFilter = filterState.selectedPriority != null ||
-            filterState.selectedCategory != null ||
-            filterState.showCompleted
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+    val hasFilter = filterState.selectedPriority != null || filterState.selectedCategory != null || filterState.showCompleted
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
     ) {
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            item {
-                FilterChip(
-                    selected = !hasFilter,
-                    onClick = onClearFilters,
-                    label = { Text("همه") }
-                )
-            }
-            item {
-                FilterChip(
-                    selected = filterState.showCompleted,
-                    onClick = { onShowCompleted(!filterState.showCompleted) },
-                    label = { Text("انجام‌شده") },
-                    leadingIcon = if (filterState.showCompleted) {
-                        { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                    } else null
-                )
-            }
-            items(TaskPriority.values()) { priority ->
-                val priorityColor = when (priority) {
-                    TaskPriority.HIGH -> PriorityHigh
-                    TaskPriority.MEDIUM -> PriorityMedium
-                    TaskPriority.LOW -> PriorityLow
-                }
-                FilterChip(
-                    selected = filterState.selectedPriority == priority,
-                    onClick = {
-                        onPrioritySelected(if (filterState.selectedPriority == priority) null else priority)
-                    },
-                    label = { Text(priority.label) },
-                    leadingIcon = {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(priorityColor)
-                        )
-                    }
-                )
-            }
-            items(TaskCategory.values()) { category ->
-                FilterChip(
-                    selected = filterState.selectedCategory == category,
-                    onClick = {
-                        onCategorySelected(if (filterState.selectedCategory == category) null else category)
-                    },
-                    label = { Text("${category.icon} ${category.label}") }
-                )
-            }
+        item { FilterChip(selected = !hasFilter, onClick = onClearFilters, label = { Text("همه") }) }
+        items(TaskPriority.values()) { p ->
+            val c = when(p) { TaskPriority.HIGH -> PriorityHigh; TaskPriority.MEDIUM -> PriorityMedium; TaskPriority.LOW -> PriorityLow }
+            FilterChip(selected = filterState.selectedPriority == p, onClick = { onPrioritySelected(if(filterState.selectedPriority==p) null else p) },
+                label = { Text(p.label) },
+                leadingIcon = { Box(Modifier.size(8.dp).clip(CircleShape).background(c)) })
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TaskCard(
-    task: Task,
-    onToggleComplete: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
-) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
-                onDelete()
-                true
-            } else false
-        }
-    )
-
-    SwipeToDismissBox(
-        state = dismissState,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.error),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "حذف",
-                    tint = Color.White,
-                    modifier = Modifier.padding(end = 24.dp)
-                )
-            }
-        }
-    ) {
-        val priorityColor = when (TaskPriority.valueOf(task.priority)) {
-            TaskPriority.HIGH -> PriorityHigh
-            TaskPriority.MEDIUM -> PriorityMedium
-            TaskPriority.LOW -> PriorityLow
-        }
-        val category = TaskCategory.valueOf(task.category)
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onEdit() },
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(4.dp)
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(priorityColor)
-                )
-                Spacer(Modifier.width(12.dp))
-                Checkbox(
-                    checked = task.isCompleted,
-                    onCheckedChange = { onToggleComplete() },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-                Spacer(Modifier.width(8.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = task.title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                        color = if (task.isCompleted)
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        else
-                            MaterialTheme.colorScheme.onSurface
-                    )
-                    if (task.description.isNotBlank()) {
-                        Text(
-                            text = task.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Text(
-                                text = "${category.icon} ${category.label}",
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                        task.dueDate?.let { dueDate ->
-                            val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(dueDate))
-                            val isOverdue = dueDate < System.currentTimeMillis() && !task.isCompleted
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.CalendarToday,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(12.dp),
-                                    tint = if (isOverdue) MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(Modifier.width(2.dp))
-                                Text(
-                                    text = dateStr,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (isOverdue) MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        if (task.reminderTime != null) {
-                            Icon(
-                                Icons.Default.NotificationsActive,
-                                contentDescription = "یادآور",
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Default.DeleteOutline,
-                        contentDescription = "حذف",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
+        items(TaskCategory.values()) { cat ->
+            FilterChip(selected = filterState.selectedCategory == cat, onClick = { onCategorySelected(if(filterState.selectedCategory==cat) null else cat) },
+                label = { Text("${cat.icon} ${cat.label}") })
         }
     }
 }
 
 @Composable
-fun EmptyState(filterState: FilterState) {
-    val hasFilter = filterState.selectedPriority != null ||
-            filterState.selectedCategory != null ||
-            filterState.showCompleted ||
-            filterState.searchQuery.isNotBlank()
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = if (hasFilter) "🔍" else "✅",
-            fontSize = 64.sp
-        )
+fun EmptyState(filterState: FilterState, modifier: Modifier = Modifier) {
+    val hasFilter = filterState.selectedPriority != null || filterState.selectedCategory != null || filterState.searchQuery.isNotBlank()
+    Column(modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Text(if (hasFilter) "🔍" else "✅", fontSize = 64.sp)
         Spacer(Modifier.height(16.dp))
-        Text(
-            text = if (hasFilter) "نتیجه‌ای یافت نشد" else "هیچ کاری وجود ندارد",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold
-        )
+        Text(if (hasFilter) "نتیجه‌ای یافت نشد" else "هیچ کاری وجود ندارد", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(8.dp))
-        Text(
-            text = if (hasFilter) "فیلتر یا جستجوی خود را تغییر دهید"
-            else "روی + بزنید تا اولین کار خود را اضافه کنید",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-        )
+        Text(if (hasFilter) "جستجو یا فیلتر را تغییر دهید" else "روی + بزنید تا اولین کار را ثبت کنید", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
