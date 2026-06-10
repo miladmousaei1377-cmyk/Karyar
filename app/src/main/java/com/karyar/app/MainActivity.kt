@@ -31,61 +31,71 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isDarkMode by viewModel.isDarkMode.collectAsState()
 
-            // Keep system bar icons in sync with the app's own theme, not the system theme
+            // splashDone lives OUTSIDE key(isDarkMode) so it survives theme changes.
+            // When theme toggles, key resets NavHost but splashDone stays true → no splash replay.
+            var splashDone by remember { mutableStateOf(false) }
+
             SideEffect {
-                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-                insetsController.isAppearanceLightStatusBars = !isDarkMode
-                insetsController.isAppearanceLightNavigationBars = !isDarkMode
+                val ctrl = WindowCompat.getInsetsController(window, window.decorView)
+                ctrl.isAppearanceLightStatusBars = !isDarkMode
+                ctrl.isAppearanceLightNavigationBars = !isDarkMode
             }
 
             KaryarTheme(darkTheme = isDarkMode) {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background,
-                        contentColor = MaterialTheme.colorScheme.onBackground
-                    ) {
-                        val navController = rememberNavController()
-                        NavHost(navController = navController, startDestination = "splash") {
-                            composable("splash") {
-                                SplashScreen(onFinished = {
-                                    navController.navigate("task_list") {
-                                        popUpTo("splash") { inclusive = true }
-                                    }
-                                })
-                            }
-                            composable("task_list") {
-                                TaskListScreen(
-                                    viewModel = viewModel,
-                                    onAddTask = { navController.navigate("add_task") },
-                                    onEditTask = { id -> navController.navigate("edit_task/$id") },
-                                    onNavigateToStats = { navController.navigate("statistics") },
-                                    onNavigateToSettings = { navController.navigate("settings") },
-                                    onNavigateToAbout = { navController.navigate("about") }
-                                )
-                            }
-                            composable("add_task") {
-                                AddEditTaskScreen(taskId = null, viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
-                            }
-                            composable(
-                                route = "edit_task/{taskId}",
-                                arguments = listOf(navArgument("taskId") { type = NavType.LongType })
-                            ) { back ->
-                                val id = back.arguments?.getLong("taskId") ?: return@composable
-                                AddEditTaskScreen(taskId = id, viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
-                            }
-                            composable("statistics") {
-                                StatisticsScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
-                            }
-                            composable("settings") {
-                                SettingsScreen(
-                                    viewModel = viewModel,
-                                    onNavigateBack = { navController.popBackStack() },
-                                    onNavigateToAbout = { navController.navigate("about") }
-                                )
-                            }
-                            composable("about") {
-                                AboutScreen(onNavigateBack = { navController.popBackStack() })
+                    // key forces full recomposition on theme change → all text colors update correctly
+                    key(isDarkMode) {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.background,
+                            contentColor = MaterialTheme.colorScheme.onBackground
+                        ) {
+                            val navController = rememberNavController()
+                            NavHost(
+                                navController = navController,
+                                startDestination = if (splashDone) "task_list" else "splash"
+                            ) {
+                                composable("splash") {
+                                    SplashScreen(onFinished = {
+                                        splashDone = true
+                                        navController.navigate("task_list") {
+                                            popUpTo("splash") { inclusive = true }
+                                        }
+                                    })
+                                }
+                                composable("task_list") {
+                                    TaskListScreen(
+                                        viewModel = viewModel,
+                                        onAddTask = { navController.navigate("add_task") },
+                                        onEditTask = { id -> navController.navigate("edit_task/$id") },
+                                        onNavigateToStats = { navController.navigate("statistics") },
+                                        onNavigateToSettings = { navController.navigate("settings") },
+                                        onNavigateToAbout = { navController.navigate("about") }
+                                    )
+                                }
+                                composable("add_task") {
+                                    AddEditTaskScreen(taskId = null, viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
+                                }
+                                composable(
+                                    route = "edit_task/{taskId}",
+                                    arguments = listOf(navArgument("taskId") { type = NavType.LongType })
+                                ) { back ->
+                                    val id = back.arguments?.getLong("taskId") ?: return@composable
+                                    AddEditTaskScreen(taskId = id, viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
+                                }
+                                composable("statistics") {
+                                    StatisticsScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
+                                }
+                                composable("settings") {
+                                    SettingsScreen(
+                                        viewModel = viewModel,
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onNavigateToAbout = { navController.navigate("about") }
+                                    )
+                                }
+                                composable("about") {
+                                    AboutScreen(onNavigateBack = { navController.popBackStack() })
+                                }
                             }
                         }
                     }
