@@ -133,14 +133,21 @@ fun AddEditTaskScreen(
                 label = { Text("عنوان کار *") },
                 isError = titleError,
                 supportingText = if (titleError) {{ Text("عنوان الزامی است") }} else null,
-                leadingIcon = { Icon(Icons.Default.Title, null) },
+                leadingIcon = { Icon(Icons.Default.Title, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -148,18 +155,26 @@ fun AddEditTaskScreen(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("توضیحات") },
-                leadingIcon = { Icon(Icons.Default.Description, null) },
+                leadingIcon = { Icon(Icons.Default.Description, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
                 maxLines = 4,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
             // Category
-            Text("دسته‌بندی", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            Text("دسته‌بندی", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 TaskCategory.values().take(3).forEach { cat ->
                     CategoryChipItem(cat, selectedCategory == cat, { selectedCategory = cat }, Modifier.weight(1f))
@@ -172,7 +187,8 @@ fun AddEditTaskScreen(
             }
 
             // Priority
-            Text("اولویت", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            Text("اولویت", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TaskPriority.values().forEach { p ->
                     val c = when(p) { TaskPriority.HIGH->PriorityHigh; TaskPriority.MEDIUM->PriorityMedium; TaskPriority.LOW->PriorityLow }
@@ -181,7 +197,8 @@ fun AddEditTaskScreen(
             }
 
             // Due date
-            Text("تاریخ سررسید", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            Text("تاریخ سررسید", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground)
             OutlinedCard(Modifier.fillMaxWidth().clickable { showDatePicker = true }) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.CalendarToday, null, tint = MaterialTheme.colorScheme.primary)
@@ -200,7 +217,8 @@ fun AddEditTaskScreen(
             }
 
             // Reminder
-            Text("یادآوری", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            Text("یادآوری", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground)
             OutlinedCard(Modifier.fillMaxWidth().clickable { showTimePicker = true }) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.NotificationsActive, null, tint = MaterialTheme.colorScheme.primary)

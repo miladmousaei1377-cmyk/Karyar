@@ -235,10 +235,14 @@ fun TaskListScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(0.4f),
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(0.4f),
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f),
                         cursorColor = MaterialTheme.colorScheme.primary
                     )
                 )

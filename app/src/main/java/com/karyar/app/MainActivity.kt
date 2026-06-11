@@ -41,10 +41,11 @@ class MainActivity : ComponentActivity() {
                 ctrl.isAppearanceLightNavigationBars = !isDarkMode
             }
 
-            KaryarTheme(darkTheme = isDarkMode) {
-                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                    // key forces full recomposition on theme change → all text colors update correctly
-                    key(isDarkMode) {
+            // key wraps KaryarTheme itself so Material3 internal color caches are fully
+            // reset on every theme toggle — prevents white text after dark→light switch.
+            key(isDarkMode) {
+                KaryarTheme(darkTheme = isDarkMode) {
+                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                         Surface(
                             modifier = Modifier.fillMaxSize(),
                             color = MaterialTheme.colorScheme.background,
