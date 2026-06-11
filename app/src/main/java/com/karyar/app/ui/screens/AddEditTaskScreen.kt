@@ -67,12 +67,11 @@ fun AddEditTaskScreen(
     }
 
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = dueDate ?: System.currentTimeMillis())
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = { TextButton(onClick = { dueDate = datePickerState.selectedDateMillis; showDatePicker = false }) { Text("تأیید") } },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("انصراف") } }
-        ) { DatePicker(state = datePickerState) }
+        JalaliDatePickerDialog(
+            initialTimestamp = dueDate,
+            onDismiss = { showDatePicker = false },
+            onConfirm = { ts -> dueDate = ts; showDatePicker = false }
+        )
     }
 
     if (showTimePicker) {
