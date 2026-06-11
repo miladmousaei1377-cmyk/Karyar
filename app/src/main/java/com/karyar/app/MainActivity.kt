@@ -1,5 +1,6 @@
 package com.karyar.app
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.view.WindowCompat
@@ -31,9 +33,21 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isDarkMode by viewModel.isDarkMode.collectAsState()
 
-            // splashDone lives OUTSIDE key(isDarkMode) so it survives theme changes.
-            // When theme toggles, key resets NavHost but splashDone stays true → no splash replay.
-            var splashDone by remember { mutableStateOf(false) }
+            // Survives Activity recreation (e.g. when system dark mode changes):
+            // ViewModel outlives Activity, so splashShown=true persists → no replay.
+            var splashDone by remember { mutableStateOf(viewModel.splashShown) }
+
+            // Override LocalConfiguration.uiMode to match the APP preference, not the system.
+            // This ensures isSystemInDarkTheme() and all Material3 internal token resolution
+            // reflect our own dark mode setting even when the system dark mode differs.
+            val sysConfig = LocalConfiguration.current
+            val appConfig = remember(isDarkMode, sysConfig) {
+                Configuration(sysConfig).apply {
+                    uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
+                            if (isDarkMode) Configuration.UI_MODE_NIGHT_YES
+                            else Configuration.UI_MODE_NIGHT_NO
+                }
+            }
 
             SideEffect {
                 val ctrl = WindowCompat.getInsetsController(window, window.decorView)
@@ -41,11 +55,13 @@ class MainActivity : ComponentActivity() {
                 ctrl.isAppearanceLightNavigationBars = !isDarkMode
             }
 
-            // key wraps KaryarTheme itself so Material3 internal color caches are fully
-            // reset on every theme toggle — prevents white text after dark→light switch.
-            key(isDarkMode) {
-                KaryarTheme(darkTheme = isDarkMode) {
-                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            CompositionLocalProvider(
+                LocalConfiguration provides appConfig,
+                LocalLayoutDirection provides LayoutDirection.Rtl
+            ) {
+                // key outside KaryarTheme: fully recreates MaterialTheme + all color caches
+                key(isDarkMode) {
+                    KaryarTheme(darkTheme = isDarkMode) {
                         Surface(
                             modifier = Modifier.fillMaxSize(),
                             color = MaterialTheme.colorScheme.background,
@@ -59,6 +75,7 @@ class MainActivity : ComponentActivity() {
                                 composable("splash") {
                                     SplashScreen(onFinished = {
                                         splashDone = true
+                                        viewModel.markSplashShown()
                                         navController.navigate("task_list") {
                                             popUpTo("splash") { inclusive = true }
                                         }
@@ -105,3 +122,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

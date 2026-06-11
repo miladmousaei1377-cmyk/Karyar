@@ -2,5 +2,10 @@
 <resources>
     <style name="Theme.Karyar" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- Prevent Android Force Dark from inverting Compose-rendered colors -->
+        <item name="android:forceDarkAllowed">false</item>
+        <!-- White window background prevents dark flash before Compose first frame -->
+        <item name="android:windowBackground">@android:color/white</item>
     </style>
 </resources>
