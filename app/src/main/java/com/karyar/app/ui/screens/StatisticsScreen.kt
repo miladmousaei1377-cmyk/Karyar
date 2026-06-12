@@ -1,5 +1,7 @@
 package com.karyar.app.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -19,10 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.karyar.app.data.Task
 import com.karyar.app.data.TaskCategory
-import com.karyar.app.data.TaskPriority
-import com.karyar.app.ui.theme.PriorityHigh
-import com.karyar.app.ui.theme.PriorityLow
-import com.karyar.app.ui.theme.PriorityMedium
 import com.karyar.app.utils.ExportHelper
 import com.karyar.app.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
@@ -40,6 +38,23 @@ fun StatisticsScreen(
     val totalCount by viewModel.totalCount.collectAsState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    var importResultMsg by remember { mutableStateOf("") }
+
+    val csvImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            scope.launch {
+                val tasks = ExportHelper.importCsv(context, it)
+                if (tasks.isNotEmpty()) {
+                    viewModel.importTasks(tasks)
+                    importResultMsg = "${tasks.size} کار با موفقیت وارد شد"
+                } else {
+                    importResultMsg = "فایل خالی یا نامعتبر است"
+                }
+            }
+        }
+    }
 
     val allTasks = remember(activeTasks, completedTasks) { activeTasks + completedTasks }
 
@@ -193,36 +208,42 @@ fun StatisticsScreen(
                 }
             }
 
-            // Priority Breakdown
-            Text(
-                text = "بر اساس اولویت",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            // Import section
+            Text("دریافت اطلاعات", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    TaskPriority.values().forEach { priority ->
-                        val priorityColor = when (priority) {
-                            TaskPriority.HIGH -> PriorityHigh
-                            TaskPriority.MEDIUM -> PriorityMedium
-                            TaskPriority.LOW -> PriorityLow
-                        }
-                        val priorityTasks = allTasks.filter { it.priority == priority.name }
-                        val priorityTotal = priorityTasks.size
-                        val priorityCompleted = priorityTasks.count { it.isCompleted }
-                        PriorityStatRow(
-                            priority = priority,
-                            color = priorityColor,
-                            total = priorityTotal,
-                            completed = priorityCompleted
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        "وارد کردن کارها از فایل CSV:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        "می‌توانید فایل CSV صادر شده از کاریار را وارد کنید تا کارها به برنامه اضافه شوند.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Button(
+                        onClick = { csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "*/*")) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0))
+                    ) {
+                        Icon(Icons.Default.FileUpload, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("انتخاب فایل CSV")
+                    }
+                    if (importResultMsg.isNotBlank()) {
+                        Text(
+                            text = importResultMsg,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (importResultMsg.contains("موفق")) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Medium
                         )
-                        if (priority != TaskPriority.LOW) {
-                            Spacer(Modifier.height(8.dp))
-                        }
                     }
                 }
             }
@@ -361,49 +382,3 @@ fun CategoryStatRow(
     }
 }
 
-@Composable
-fun PriorityStatRow(
-    priority: TaskPriority,
-    color: Color,
-    total: Int,
-    completed: Int
-) {
-    val progress = if (total > 0) completed.toFloat() / total.toFloat() else 0f
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .clip(androidx.compose.foundation.shape.CircleShape)
-                        .background(color)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = priority.label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-            Text(
-                text = if (total == 0) "بدون کار" else "$completed/$total",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Spacer(Modifier.height(4.dp))
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp)),
-            color = color,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    }
-}

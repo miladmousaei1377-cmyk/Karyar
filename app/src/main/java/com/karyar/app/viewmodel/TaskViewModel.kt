@@ -56,11 +56,20 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     val totalCount: StateFlow<Int> = repository.getTotalTaskCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    val onboardingCompleted: StateFlow<Boolean> = prefsRepo.onboardingCompleted
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     // Survives Activity recreation so splash screen never replays after first launch.
     var splashShown: Boolean = false
         private set
 
     fun markSplashShown() { splashShown = true }
+
+    fun setOnboardingCompleted() = viewModelScope.launch { prefsRepo.setOnboardingCompleted() }
+
+    fun importTasks(tasks: List<Task>) = viewModelScope.launch {
+        tasks.forEach { repository.insertTask(it.copy(id = 0)) }
+    }
 
     fun setDarkMode(enabled: Boolean) = viewModelScope.launch { prefsRepo.setDarkMode(enabled) }
     fun setSearchQuery(q: String) { _filterState.update { it.copy(searchQuery = q) } }

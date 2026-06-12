@@ -1,5 +1,6 @@
 package com.karyar.app.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.combinedClickable
@@ -31,6 +32,7 @@ import com.karyar.app.ui.theme.PriorityLow
 import com.karyar.app.ui.theme.PriorityMedium
 import com.karyar.app.utils.JalaliCalendar
 import com.karyar.app.viewmodel.TaskViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -60,6 +62,22 @@ fun TaskListScreen(
     var selectedCategory by remember { mutableStateOf<TaskCategory?>(null) }
     var selectedIds by remember { mutableStateOf(setOf<Long>()) }
     val isSelectionMode = selectedIds.isNotEmpty()
+
+    var showDeleteAllDialog by remember { mutableStateOf(false) }
+
+    var backPressedOnce by remember { mutableStateOf(false) }
+    BackHandler {
+        if (backPressedOnce) {
+            android.os.Process.killProcess(android.os.Process.myPid())
+        } else {
+            backPressedOnce = true
+            scope.launch {
+                snackbarHostState.showSnackbar("برای خروج دوباره فشار دهید")
+                delay(2000)
+                backPressedOnce = false
+            }
+        }
+    }
 
     // Clear selection when switching tabs
     LaunchedEffect(selectedTab) {
@@ -281,7 +299,7 @@ fun TaskListScreen(
                         horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(
-                            onClick = { viewModel.deleteAllActive() },
+                            onClick = { showDeleteAllDialog = true },
                             colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
                             Icon(Icons.Default.DeleteSweep, null, Modifier.size(16.dp))
@@ -291,6 +309,30 @@ fun TaskListScreen(
                     }
                 } else {
                     Spacer(Modifier.height(8.dp))
+                }
+
+                if (showDeleteAllDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showDeleteAllDialog = false },
+                        title = { Text("حذف همه کارها", fontWeight = FontWeight.Bold) },
+                        text = { Text("آیا مطمئن هستید که می‌خواهید همه کارهای فعال را حذف کنید؟ این عملیات قابل بازگشت نیست.") },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    viewModel.deleteAllActive()
+                                    showDeleteAllDialog = false
+                                },
+                                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                            ) {
+                                Text("بله، حذف کن")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDeleteAllDialog = false }) {
+                                Text("انصراف")
+                            }
+                        }
+                    )
                 }
 
                 // Task list

@@ -67,17 +67,32 @@ class MainActivity : ComponentActivity() {
                             color = MaterialTheme.colorScheme.background,
                             contentColor = MaterialTheme.colorScheme.onBackground
                         ) {
+                            val onboardingCompleted by viewModel.onboardingCompleted.collectAsState()
                             val navController = rememberNavController()
+                            val startDest = when {
+                                !splashDone -> "splash"
+                                !onboardingCompleted -> "onboarding"
+                                else -> "task_list"
+                            }
                             NavHost(
                                 navController = navController,
-                                startDestination = if (splashDone) "task_list" else "splash"
+                                startDestination = startDest
                             ) {
                                 composable("splash") {
                                     SplashScreen(onFinished = {
                                         splashDone = true
                                         viewModel.markSplashShown()
-                                        navController.navigate("task_list") {
+                                        val dest = if (!onboardingCompleted) "onboarding" else "task_list"
+                                        navController.navigate(dest) {
                                             popUpTo("splash") { inclusive = true }
+                                        }
+                                    })
+                                }
+                                composable("onboarding") {
+                                    OnboardingScreen(onStart = {
+                                        viewModel.setOnboardingCompleted()
+                                        navController.navigate("task_list") {
+                                            popUpTo("onboarding") { inclusive = true }
                                         }
                                     })
                                 }

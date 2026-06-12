@@ -79,4 +79,47 @@ object ExportHelper {
         val i=Intent(Intent.ACTION_VIEW).apply { setDataAndType(uri,mime); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
         context.startActivity(Intent.createChooser(i,"باز کردن با..."))
     }
+
+    fun importCsv(context: Context, uri: Uri): List<com.karyar.app.data.Task> {
+        return try {
+            val content = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText() ?: return emptyList()
+            val lines = content.lines().drop(1) // skip header
+            lines.mapNotNull { line ->
+                if (line.isBlank()) return@mapNotNull null
+                // Format: "title","desc","cat","pri","status","due","created"
+                val raw = line.trim()
+                val fields = raw.split("\",\"")
+                    .map { it.removePrefix("\"").removeSuffix("\"") }
+                if (fields.isEmpty() || fields[0].isBlank()) return@mapNotNull null
+                val title = fields[0]
+                val description = fields.getOrElse(1) { "" }
+                val catLabel = fields.getOrElse(2) { "" }
+                val priLabel = fields.getOrElse(3) { "" }
+                val status = fields.getOrElse(4) { "" }
+                val dueDateStr = fields.getOrElse(5) { "" }
+                val category = com.karyar.app.data.TaskCategory.values()
+                    .firstOrNull { it.label == catLabel }?.name
+                    ?: com.karyar.app.data.TaskCategory.OTHER.name
+                val priority = com.karyar.app.data.TaskPriority.values()
+                    .firstOrNull { it.label == priLabel }?.name
+                    ?: com.karyar.app.data.TaskPriority.MEDIUM.name
+                val isCompleted = status == "انجام شده"
+                val dueDate = parseJalaliDate(dueDateStr)
+                com.karyar.app.data.Task(
+                    title = title, description = description,
+                    category = category, priority = priority,
+                    isCompleted = isCompleted, dueDate = dueDate
+                )
+            }
+        } catch (e: Exception) { emptyList() }
+    }
+
+    private fun parseJalaliDate(s: String): Long? {
+        val parts = s.split("/")
+        if (parts.size != 3) return null
+        val y = parts[0].toIntOrNull() ?: return null
+        val m = parts[1].toIntOrNull() ?: return null
+        val d = parts[2].toIntOrNull() ?: return null
+        return JalaliCalendar.toTimestamp(y, m, d)
+    }
 }
