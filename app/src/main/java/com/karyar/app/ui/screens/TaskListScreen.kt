@@ -429,6 +429,7 @@ fun TaskListScreen(
                                             currentList.filter { it.id in selectedIds && !it.isCompleted }
                                                 .forEach { viewModel.toggleComplete(it) }
                                             selectedIds = emptySet()
+                                            selectedTab = 1
                                         },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(12.dp)
