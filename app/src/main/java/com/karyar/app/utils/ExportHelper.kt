@@ -17,7 +17,7 @@ object ExportHelper {
 
     fun buildTextBytes(tasks: List<Task>): ByteArray {
         val sb = StringBuilder()
-        sb.appendLine("Karyar - گزارش کارها")
+        sb.appendLine("کاریار - گزارش کارها")
         sb.appendLine("تاریخ: ${JalaliCalendar.toShortDate(System.currentTimeMillis())}")
         sb.appendLine("=".repeat(40))
         val active = tasks.filter { !it.isCompleted }
@@ -55,7 +55,7 @@ object ExportHelper {
         val paint = Paint().apply { textSize=13f; isAntiAlias=true; color=android.graphics.Color.BLACK }
         val title = Paint().apply { textSize=18f; isAntiAlias=true; isFakeBoldText=true; color=android.graphics.Color.rgb(46,125,50) }
         var y=50f
-        canvas.drawText("Karyar - گزارش کارها", 50f, y, title); y+=28f
+        canvas.drawText("کاریار - گزارش کارها", 50f, y, title); y+=28f
         canvas.drawText("تاریخ: ${JalaliCalendar.toShortDate(System.currentTimeMillis())}", 50f, y, paint); y+=22f
         canvas.drawLine(50f,y,545f,y,paint); y+=22f
         val active=tasks.filter{!it.isCompleted}; val done=tasks.filter{it.isCompleted}

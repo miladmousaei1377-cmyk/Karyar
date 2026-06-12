@@ -17,7 +17,7 @@
     <string name="dark_mode">حالت تاریک</string>
     <string name="notification_channel_name">یادآوری کارها</string>
     <string name="notification_channel_description">یادآوری کارهای روزانه</string>
-    <string name="reminder_notification_title">Karyar - یادآوری</string>
+    <string name="reminder_notification_title">کاریار - یادآوری</string>
     <string name="search_placeholder">جستجو...</string>
     <string name="filter_all">همه</string>
     <string name="filter_completed">انجام‌شده</string>
