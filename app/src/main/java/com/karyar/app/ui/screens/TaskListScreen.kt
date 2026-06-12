@@ -66,7 +66,7 @@ fun TaskListScreen(
     var showDeleteAllDialog by remember { mutableStateOf(false) }
 
     var backPressedOnce by remember { mutableStateOf(false) }
-    BackHandler {
+    BackHandler(enabled = drawerState.isClosed) {
         if (backPressedOnce) {
             android.os.Process.killProcess(android.os.Process.myPid())
         } else {
@@ -104,7 +104,6 @@ fun TaskListScreen(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = false,
         drawerContent = {
             KaryarNavigationDrawer(
                 activeCount = activeCount,
