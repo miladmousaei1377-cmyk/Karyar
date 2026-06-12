@@ -38,20 +38,46 @@ fun StatisticsScreen(
     val totalCount by viewModel.totalCount.collectAsState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var importResultMsg by remember { mutableStateOf("") }
+    var saveMsg by remember { mutableStateOf("") }
 
-    val csvImportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
+    val textSaveLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/plain")
     ) { uri ->
         uri?.let {
             scope.launch {
-                val tasks = ExportHelper.importCsv(context, it)
-                if (tasks.isNotEmpty()) {
-                    viewModel.importTasks(tasks)
-                    importResultMsg = "${tasks.size} کار با موفقیت وارد شد"
-                } else {
-                    importResultMsg = "فایل خالی یا نامعتبر است"
-                }
+                val tasks = viewModel.getAllTasksForExport()
+                try {
+                    context.contentResolver.openOutputStream(it)?.use { os -> os.write(ExportHelper.buildTextBytes(tasks)) }
+                    saveMsg = "فایل متنی ذخیره شد"
+                } catch (e: Exception) { saveMsg = "خطا در ذخیره‌سازی" }
+            }
+        }
+    }
+
+    val csvSaveLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri?.let {
+            scope.launch {
+                val tasks = viewModel.getAllTasksForExport()
+                try {
+                    context.contentResolver.openOutputStream(it)?.use { os -> os.write(ExportHelper.buildCsvBytes(tasks)) }
+                    saveMsg = "فایل اکسل ذخیره شد"
+                } catch (e: Exception) { saveMsg = "خطا در ذخیره‌سازی" }
+            }
+        }
+    }
+
+    val pdfSaveLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri ->
+        uri?.let {
+            scope.launch {
+                val tasks = viewModel.getAllTasksForExport()
+                try {
+                    context.contentResolver.openOutputStream(it)?.use { os -> ExportHelper.writePdfToStream(tasks, os) }
+                    saveMsg = "فایل PDF ذخیره شد"
+                } catch (e: Exception) { saveMsg = "خطا در ذخیره‌سازی" }
             }
         }
     }
@@ -208,88 +234,65 @@ fun StatisticsScreen(
                 }
             }
 
-            // Import section
+            // Save to device section
             Text("دریافت اطلاعات", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "وارد کردن کارها از فایل CSV:",
+                        "ذخیره گزارش کارها در حافظه دستگاه:",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
-                    Text(
-                        "می‌توانید فایل CSV صادر شده از کاریار را وارد کنید تا کارها به برنامه اضافه شوند.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Button(
-                        onClick = { csvImportLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "*/*")) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0))
-                    ) {
-                        Icon(Icons.Default.FileUpload, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("انتخاب فایل CSV")
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { textSaveLauncher.launch("karyar_tasks.txt") },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.Description, null, Modifier.size(20.dp))
+                                Spacer(Modifier.height(2.dp))
+                                Text("متنی", fontSize = 12.sp)
+                            }
+                        }
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { csvSaveLauncher.launch("karyar_tasks.csv") },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.TableChart, null, Modifier.size(20.dp))
+                                Spacer(Modifier.height(2.dp))
+                                Text("اکسل", fontSize = 12.sp)
+                            }
+                        }
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { pdfSaveLauncher.launch("karyar_tasks.pdf") },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.PictureAsPdf, null, Modifier.size(20.dp))
+                                Spacer(Modifier.height(2.dp))
+                                Text("PDF", fontSize = 12.sp)
+                            }
+                        }
                     }
-                    if (importResultMsg.isNotBlank()) {
+                    if (saveMsg.isNotBlank()) {
                         Text(
-                            text = importResultMsg,
+                            text = saveMsg,
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (importResultMsg.contains("موفق")) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.error,
+                            color = if (saveMsg.contains("خطا")) MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
                         )
-                    }
-                }
-            }
-
-            // Export section
-            Text("خروجی گزارش", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(2.dp)) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("دانلود گزارش کارها:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Text export button
-                        Button(modifier = Modifier.weight(1f), onClick = {
-                            scope.launch {
-                                val tasks = viewModel.getAllTasksForExport()
-                                val uri = ExportHelper.exportText(context, tasks)
-                                uri?.let { ExportHelper.openFile(context, it, "text/plain") }
-                            }
-                        }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)) {
-                            Icon(Icons.Default.Description, null, Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("متن", fontSize = 13.sp)
-                        }
-                        // CSV/Excel export button
-                        Button(modifier = Modifier.weight(1f), onClick = {
-                            scope.launch {
-                                val tasks = viewModel.getAllTasksForExport()
-                                val uri = ExportHelper.exportCsv(context, tasks)
-                                uri?.let { ExportHelper.openFile(context, it, "text/csv") }
-                            }
-                        }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0))) {
-                            Icon(Icons.Default.TableChart, null, Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("اکسل", fontSize = 13.sp)
-                        }
-                        // PDF export button
-                        Button(modifier = Modifier.weight(1f), onClick = {
-                            scope.launch {
-                                val tasks = viewModel.getAllTasksForExport()
-                                val uri = ExportHelper.exportPdf(context, tasks)
-                                uri?.let { ExportHelper.openFile(context, it, "application/pdf") }
-                            }
-                        }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                            Icon(Icons.Default.PictureAsPdf, null, Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("PDF", fontSize = 13.sp)
-                        }
                     }
                 }
             }

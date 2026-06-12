@@ -15,7 +15,7 @@ import java.io.FileOutputStream
 
 object ExportHelper {
 
-    fun exportText(context: Context, tasks: List<Task>): Uri? {
+    fun buildTextBytes(tasks: List<Task>): ByteArray {
         val sb = StringBuilder()
         sb.appendLine("کاریار - گزارش کارها")
         sb.appendLine("تاریخ: ${JalaliCalendar.toShortDate(System.currentTimeMillis())}")
@@ -33,10 +33,10 @@ object ExportHelper {
         sb.appendLine("\nانجام‌شده (${done.size})")
         sb.appendLine("-".repeat(30))
         done.forEach { t -> sb.appendLine("✓ ${t.title}") }
-        return write(context, "karyar_tasks.txt", sb.toString().toByteArray(Charsets.UTF_8))
+        return sb.toString().toByteArray(Charsets.UTF_8)
     }
 
-    fun exportCsv(context: Context, tasks: List<Task>): Uri? {
+    fun buildCsvBytes(tasks: List<Task>): ByteArray {
         val sb = StringBuilder()
         sb.appendLine("عنوان,توضیحات,دسته,اولویت,وضعیت,سررسید,ثبت")
         tasks.forEach { t ->
@@ -45,10 +45,10 @@ object ExportHelper {
             val created = JalaliCalendar.toShortDate(t.createdAt)
             sb.appendLine("\"${t.title}\",\"${t.description}\",\"${TaskCategory.valueOf(t.category).label}\",\"${TaskPriority.valueOf(t.priority).label}\",\"$status\",\"$due\",\"$created\"")
         }
-        return write(context, "karyar_tasks.csv", sb.toString().toByteArray(Charsets.UTF_8))
+        return sb.toString().toByteArray(Charsets.UTF_8)
     }
 
-    fun exportPdf(context: Context, tasks: List<Task>): Uri? = try {
+    fun writePdfToStream(tasks: List<Task>, outputStream: java.io.OutputStream) {
         val doc = PdfDocument()
         val page = doc.startPage(PdfDocument.PageInfo.Builder(595,842,1).create())
         val canvas = page.canvas
@@ -64,8 +64,19 @@ object ExportHelper {
         y+=8f; paint.isFakeBoldText=true; canvas.drawText("انجام‌شده (${done.size})",50f,y,paint); y+=20f; paint.isFakeBoldText=false
         done.forEach { t -> if(y<800f){ canvas.drawText("✓ ${t.title}",60f,y,paint); y+=18f } }
         doc.finishPage(page)
+        doc.writeTo(outputStream)
+        doc.close()
+    }
+
+    fun exportText(context: Context, tasks: List<Task>): Uri? =
+        write(context, "karyar_tasks.txt", buildTextBytes(tasks))
+
+    fun exportCsv(context: Context, tasks: List<Task>): Uri? =
+        write(context, "karyar_tasks.csv", buildCsvBytes(tasks))
+
+    fun exportPdf(context: Context, tasks: List<Task>): Uri? = try {
         val file=File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),"karyar_tasks.pdf")
-        doc.writeTo(FileOutputStream(file)); doc.close()
+        writePdfToStream(tasks, FileOutputStream(file))
         FileProvider.getUriForFile(context,"${context.packageName}.fileprovider",file)
     } catch(e:Exception){ null }
 
