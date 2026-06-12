@@ -104,6 +104,7 @@ fun TaskListScreen(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = false,
         drawerContent = {
             KaryarNavigationDrawer(
                 activeCount = activeCount,
@@ -599,7 +600,11 @@ fun KaryarNavigationDrawer(
     onSettingsClick: () -> Unit,
     onAboutClick: () -> Unit
 ) {
-    ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+    ModalDrawerSheet(
+        modifier = Modifier.width(280.dp),
+        drawerContainerColor = MaterialTheme.colorScheme.surface,
+        drawerContentColor = MaterialTheme.colorScheme.onSurface
+    ) {
         Box(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primary).padding(24.dp)) {
             Column {
                 Text("کاریار", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
