@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.karyar.app.data.Task
 import com.karyar.app.data.TaskCategory
+import com.karyar.app.ui.theme.PriorityLow
+import com.karyar.app.ui.theme.PriorityMedium
 import com.karyar.app.utils.ExportHelper
 import com.karyar.app.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
