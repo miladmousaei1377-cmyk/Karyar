@@ -10,8 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,12 +21,12 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(onFinished: () -> Unit) {
-    val scale = remember { Animatable(0.5f) }
-    val alpha = remember { Animatable(0f) }
+    val scaleAnim = remember { Animatable(0.5f) }
+    val alphaAnim = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        scale.animateTo(1f, animationSpec = tween(350, easing = EaseOutBack))
-        alpha.animateTo(1f, animationSpec = tween(250))
+        scaleAnim.animateTo(1f, animationSpec = tween(350, easing = EaseOutBack))
+        alphaAnim.animateTo(1f, animationSpec = tween(250))
         delay(400)
         onFinished()
     }
@@ -44,9 +44,9 @@ fun SplashScreen(onFinished: () -> Unit) {
                 modifier = Modifier
                     .size(120.dp)
                     .graphicsLayer {
-                        scaleX = scale.value
-                        scaleY = scale.value
-                        alpha = alpha.value
+                        scaleX = scaleAnim.value
+                        scaleY = scaleAnim.value
+                        alpha = alphaAnim.value
                         clip = true
                         shape = RoundedCornerShape(24.dp)
                     }
@@ -57,14 +57,14 @@ fun SplashScreen(onFinished: () -> Unit) {
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.alpha(alpha.value)
+                modifier = Modifier.alpha(alphaAnim.value)
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 text = "مدیریت کارهای روزانه",
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.alpha(alpha.value)
+                modifier = Modifier.alpha(alphaAnim.value)
             )
         }
     }
