@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,13 +45,9 @@ fun SplashScreen(onFinished: () -> Unit) {
                 contentDescription = "کاریار",
                 modifier = Modifier
                     .size(120.dp)
-                    .graphicsLayer {
-                        scaleX = scaleAnim.value
-                        scaleY = scaleAnim.value
-                        alpha = alphaAnim.value
-                        clip = true
-                        shape = RoundedCornerShape(24.dp)
-                    }
+                    .scale(scaleAnim.value)
+                    .clip(RoundedCornerShape(24.dp))
+                    .alpha(alphaAnim.value)
             )
             Spacer(Modifier.height(24.dp))
             Text(
