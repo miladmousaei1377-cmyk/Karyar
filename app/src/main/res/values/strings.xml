@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">کاریار</string>
+    <string name="app_name">Karyar</string>
     <string name="add_task">افزودن کار</string>
     <string name="edit_task">ویرایش کار</string>
     <string name="delete_task">حذف کار</string>
@@ -17,7 +17,7 @@
     <string name="dark_mode">حالت تاریک</string>
     <string name="notification_channel_name">یادآوری کارها</string>
     <string name="notification_channel_description">یادآوری کارهای روزانه</string>
-    <string name="reminder_notification_title">کاریار - یادآوری</string>
+    <string name="reminder_notification_title">Karyar - یادآوری</string>
     <string name="search_placeholder">جستجو...</string>
     <string name="filter_all">همه</string>
     <string name="filter_completed">انجام‌شده</string>

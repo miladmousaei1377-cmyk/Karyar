@@ -612,7 +612,7 @@ fun KaryarNavigationDrawer(
     ) {
         Box(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primary).padding(24.dp)) {
             Column {
-                Text("کاریار", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                Text("Karyar", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
                 Text("مدیریت کارهای روزانه", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimary.copy(0.8f))
                 Spacer(Modifier.height(8.dp))
@@ -625,7 +625,7 @@ fun KaryarNavigationDrawer(
         NavigationDrawerItem(label = { Text("کارها") }, selected = true, onClick = onTasksClick, icon = { Icon(Icons.Default.CheckBox, null) }, modifier = Modifier.padding(horizontal = 12.dp))
         NavigationDrawerItem(label = { Text("آمار و گزارش") }, selected = false, onClick = onStatsClick, icon = { Icon(Icons.Default.BarChart, null) }, modifier = Modifier.padding(horizontal = 12.dp))
         NavigationDrawerItem(label = { Text("تنظیمات") }, selected = false, onClick = onSettingsClick, icon = { Icon(Icons.Default.Settings, null) }, modifier = Modifier.padding(horizontal = 12.dp))
-        NavigationDrawerItem(label = { Text("درباره کاریار") }, selected = false, onClick = onAboutClick, icon = { Icon(Icons.Default.Info, null) }, modifier = Modifier.padding(horizontal = 12.dp))
+        NavigationDrawerItem(label = { Text("درباره Karyar") }, selected = false, onClick = onAboutClick, icon = { Icon(Icons.Default.Info, null) }, modifier = Modifier.padding(horizontal = 12.dp))
 
         Spacer(Modifier.weight(1f))
         HorizontalDivider(Modifier.padding(horizontal = 12.dp, vertical = 8.dp))

@@ -25,7 +25,7 @@ fun AboutScreen(onNavigateBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("درباره کاریار", fontWeight = FontWeight.Bold) },
+                title = { Text("درباره Karyar", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "بازگشت")
@@ -54,9 +54,9 @@ fun AboutScreen(onNavigateBack: () -> Unit) {
                 contentDescription = null,
                 modifier = Modifier.size(100.dp).clip(RoundedCornerShape(24.dp))
             )
-            Text("کاریار", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Text("Karyar", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Text("مدیریت کارهای روزانه", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("نسخه ۱.۰.۰", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("نسخه ۱.۱.۰", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(Modifier.height(8.dp))
 
