@@ -387,11 +387,8 @@ fun TaskListScreen(
                                             if (r == SnackbarResult.ActionPerformed) viewModel.addTask(task)
                                         }
                                     },
-                                    showEdit = when {
-                                        selectedTab == 1 -> false
-                                        selectedTab == 2 -> true
-                                        else -> true
-                                    }
+                                    showEdit = selectedTab != 1,
+                                    checkboxEntersSelection = selectedTab == 0
                                 )
                             }
                             item { Spacer(Modifier.height(80.dp)) }
@@ -490,7 +487,8 @@ fun HomeTaskCard(
     onSelect: () -> Unit = {},
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    showEdit: Boolean
+    showEdit: Boolean,
+    checkboxEntersSelection: Boolean = false
 ) {
     val priorityColor = when (TaskPriority.valueOf(task.priority)) {
         TaskPriority.HIGH -> PriorityHigh
@@ -522,15 +520,18 @@ fun HomeTaskCard(
             Box(Modifier.width(4.dp).height(52.dp).clip(RoundedCornerShape(2.dp)).background(priorityColor))
             Spacer(Modifier.width(8.dp))
             Checkbox(
-                checked = if (isSelectionMode) isSelected else task.isCompleted,
+                checked = if (isSelectionMode) isSelected else if (checkboxEntersSelection) false else task.isCompleted,
                 onCheckedChange = {
-                    if (isSelectionMode) onSelect() else onToggleComplete()
+                    when {
+                        isSelectionMode -> onSelect()
+                        checkboxEntersSelection -> onLongPress()
+                        else -> onToggleComplete()
+                    }
                 },
                 colors = CheckboxDefaults.colors(
-                    checkedColor = if (isSelectionMode)
-                        MaterialTheme.colorScheme.secondary
-                    else
-                        MaterialTheme.colorScheme.primary
+                    checkedColor = if (isSelectionMode) MaterialTheme.colorScheme.secondary
+                                   else MaterialTheme.colorScheme.primary,
+                    uncheckedColor = MaterialTheme.colorScheme.outline
                 ),
                 modifier = Modifier.size(22.dp)
             )
