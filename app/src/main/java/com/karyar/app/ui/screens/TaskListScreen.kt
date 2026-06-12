@@ -387,7 +387,8 @@ fun TaskListScreen(
                                         }
                                     },
                                     showEdit = selectedTab != 1,
-                                    checkboxEntersSelection = selectedTab == 0
+                                    checkboxEntersSelection = selectedTab == 0,
+                                    showCheckbox = selectedTab != 2
                                 )
                             }
                             item { Spacer(Modifier.height(80.dp)) }
@@ -488,7 +489,8 @@ fun HomeTaskCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     showEdit: Boolean,
-    checkboxEntersSelection: Boolean = false
+    checkboxEntersSelection: Boolean = false,
+    showCheckbox: Boolean = true
 ) {
     val priorityColor = when (TaskPriority.valueOf(task.priority)) {
         TaskPriority.HIGH -> PriorityHigh
@@ -519,23 +521,25 @@ fun HomeTaskCard(
         ) {
             Box(Modifier.width(4.dp).height(52.dp).clip(RoundedCornerShape(2.dp)).background(priorityColor))
             Spacer(Modifier.width(8.dp))
-            Checkbox(
-                checked = if (isSelectionMode) isSelected else if (checkboxEntersSelection) false else task.isCompleted,
-                onCheckedChange = {
-                    when {
-                        isSelectionMode -> onSelect()
-                        checkboxEntersSelection -> onLongPress()
-                        else -> onToggleComplete()
-                    }
-                },
-                colors = CheckboxDefaults.colors(
-                    checkedColor = if (isSelectionMode) MaterialTheme.colorScheme.secondary
-                                   else MaterialTheme.colorScheme.primary,
-                    uncheckedColor = MaterialTheme.colorScheme.outline
-                ),
-                modifier = Modifier.size(22.dp)
-            )
-            Spacer(Modifier.width(10.dp))
+            if (showCheckbox) {
+                Checkbox(
+                    checked = if (isSelectionMode) isSelected else if (checkboxEntersSelection) false else task.isCompleted,
+                    onCheckedChange = {
+                        when {
+                            isSelectionMode -> onSelect()
+                            checkboxEntersSelection -> onLongPress()
+                            else -> onToggleComplete()
+                        }
+                    },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = if (isSelectionMode) MaterialTheme.colorScheme.secondary
+                                       else MaterialTheme.colorScheme.primary,
+                        uncheckedColor = MaterialTheme.colorScheme.outline
+                    ),
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+            }
             Column(Modifier.weight(1f)) {
                 Text(
                     text = task.title,
