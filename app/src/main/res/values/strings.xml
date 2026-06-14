@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">کارلند</string>
+    <string name="app_name">Karland</string>
     <string name="add_task">افزودن کار</string>
     <string name="edit_task">ویرایش کار</string>
     <string name="delete_task">حذف کار</string>

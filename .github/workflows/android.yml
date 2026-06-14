@@ -105,9 +105,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.1-latest
-          name: "کارلند v1.1 (آخرین نسخه)"
+          name: "Karland v1.1 (آخرین نسخه)"
           body: |
-            ## کارلند - مدیریت کارهای روزانه
+            ## Karland - مدیریت کارهای روزانه
             > این release با هر push جدید به‌روز می‌شود.
 
             ### ویژگی‌های نسخه ۱.۱:
