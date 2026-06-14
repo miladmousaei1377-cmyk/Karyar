@@ -6,16 +6,25 @@ plugins {
 }
 
 android {
-    namespace = "com.karyar.app"
+    namespace = "com.karland.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.karyar.app"
+        applicationId = "com.karland.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 2
         versionName = "1.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = "Karland@2025"
+            keyAlias = "karland"
+            keyPassword = "Karland@2025"
+        }
     }
 
     buildTypes {
@@ -25,7 +34,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

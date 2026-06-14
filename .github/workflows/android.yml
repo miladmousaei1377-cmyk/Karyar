@@ -47,21 +47,21 @@ jobs:
       - name: Rename APKs
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/app-debug.apk out/karyar-debug.apk
-          cp app/build/outputs/apk/release/app-release.apk out/karyar.apk
+          cp app/build/outputs/apk/debug/app-debug.apk out/karland-debug.apk
+          cp app/build/outputs/apk/release/app-release.apk out/karland.apk
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: karyar-debug-apk
-          path: out/karyar-debug.apk
+          name: karland-debug-apk
+          path: out/karland-debug.apk
           retention-days: 30
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: karyar-release-apk
-          path: out/karyar.apk
+          name: karland-release-apk
+          path: out/karland.apk
           retention-days: 30
 
   release:
@@ -99,7 +99,7 @@ jobs:
       - name: Prepare APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/release/app-release.apk out/karyar.apk
+          cp app/build/outputs/apk/release/app-release.apk out/karland.apk
 
       - name: Create or update latest release
         uses: softprops/action-gh-release@v2
@@ -121,11 +121,9 @@ jobs:
             - آمار و گزارش‌گیری + ذخیره فایل متن، اکسل و PDF
             - پشتیبانی کامل از فارسی (RTL)
 
-            ### نحوه نصب:
-            ۱. فایل **karyar.apk** را دانلود کنید
-            ۲. در تنظیمات → امنیت، «نصب از منابع ناشناخته» را فعال کنید
-            ۳. فایل APK را باز کرده و نصب کنید
-          files: out/karyar.apk
+            ### نحوه نصب از کافه‌بازار:
+            اپلیکیشن را از کافه‌بازار جستجو و نصب کنید.
+          files: out/karland.apk
           draft: false
           prerelease: false
         env:

@@ -1,4 +1,4 @@
-package com.karyar.app
+package com.karland.app
 
 import org.junit.Test
 import org.junit.Assert.*
