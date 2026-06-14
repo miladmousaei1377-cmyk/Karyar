@@ -123,7 +123,7 @@ fun SettingsScreen(
                 Column {
                     SettingsActionRow(
                         icon = Icons.Default.Info,
-                        title = "درباره کاریار",
+                        title = "درباره کارلند",
                         subtitle = "اطلاعات برنامه و توسعه‌دهنده",
                         onClick = onNavigateToAbout
                     )

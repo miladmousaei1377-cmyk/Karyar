@@ -42,7 +42,7 @@ fun SplashScreen(onFinished: () -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(id = R.mipmap.ic_launcher),
-                contentDescription = "کاریار",
+                contentDescription = "کارلند",
                 modifier = Modifier
                     .size(120.dp)
                     .scale(scaleAnim.value)
@@ -51,7 +51,7 @@ fun SplashScreen(onFinished: () -> Unit) {
             )
             Spacer(Modifier.height(24.dp))
             Text(
-                text = "کاریار",
+                text = "کارلند",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
