@@ -50,7 +50,7 @@ fun AboutScreen(onNavigateBack: () -> Unit) {
         ) {
             Spacer(Modifier.height(8.dp))
             Image(
-                painter = painterResource(R.mipmap.ic_launcher),
+                painter = painterResource(R.drawable.logo_karland),
                 contentDescription = null,
                 modifier = Modifier.size(100.dp).clip(RoundedCornerShape(24.dp))
             )
