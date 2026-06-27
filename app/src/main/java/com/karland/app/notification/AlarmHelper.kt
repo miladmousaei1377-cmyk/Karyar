@@ -6,11 +6,12 @@ import android.content.Context
 import android.content.Intent
 
 object AlarmHelper {
-    fun scheduleAlarm(context: Context, taskId: Long, title: String, timeMillis: Long) {
+    fun scheduleAlarm(context: Context, taskId: Long, title: String, timeMillis: Long, alarmToneUri: String? = null) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra(NotificationHelper.EXTRA_TASK_ID, taskId)
             putExtra(NotificationHelper.EXTRA_TASK_TITLE, title)
+            putExtra(NotificationHelper.EXTRA_ALARM_TONE, alarmToneUri)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context, taskId.toInt(), intent,

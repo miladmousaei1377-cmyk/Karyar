@@ -1,5 +1,7 @@
 package com.karland.app.ui.screens
 
+import android.media.RingtoneManager
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +42,7 @@ fun AddEditTaskScreen(
     onNavigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var existingTask by remember { mutableStateOf<Task?>(null) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -46,9 +50,11 @@ fun AddEditTaskScreen(
     var selectedPriority by remember { mutableStateOf(TaskPriority.MEDIUM) }
     var dueDate by remember { mutableStateOf<Long?>(null) }
     var reminderTime by remember { mutableStateOf<Long?>(null) }
+    var alarmToneUri by remember { mutableStateOf<String?>(null) }
     var titleError by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var showRingtonePicker by remember { mutableStateOf(false) }
 
     val isEditMode = taskId != null
 
@@ -62,8 +68,17 @@ fun AddEditTaskScreen(
                 selectedPriority = TaskPriority.valueOf(it.priority)
                 dueDate = it.dueDate
                 reminderTime = it.reminderTime
+                alarmToneUri = it.alarmToneUri
             }
         }
+    }
+
+    if (showRingtonePicker) {
+        RingtonePickerDialog(
+            currentUri = alarmToneUri,
+            onDismiss = { showRingtonePicker = false },
+            onSelect = { uri -> alarmToneUri = uri; showRingtonePicker = false }
+        )
     }
 
     if (showDatePicker) {
@@ -236,6 +251,29 @@ fun AddEditTaskScreen(
                 }
             }
 
+            // Ringtone picker
+            Text("آهنگ آلارم", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground)
+            OutlinedCard(Modifier.fillMaxWidth().clickable { showRingtonePicker = true }) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.MusicNote, null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = if (alarmToneUri == null) "بدون آلارم"
+                               else runCatching {
+                                   RingtoneManager.getRingtone(context, Uri.parse(alarmToneUri)).getTitle(context)
+                               }.getOrDefault("آهنگ انتخاب‌شده"),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.weight(1f))
+                    if (alarmToneUri != null) {
+                        IconButton(onClick = { alarmToneUri = null }, Modifier.size(24.dp)) {
+                            Icon(Icons.Default.Clear, null, Modifier.size(16.dp))
+                        }
+                    }
+                }
+            }
+
             Spacer(Modifier.height(8.dp))
 
             Button(
@@ -245,11 +283,11 @@ fun AddEditTaskScreen(
                         if (isEditMode && existingTask != null) {
                             viewModel.updateTask(existingTask!!.copy(title = title.trim(), description = description.trim(),
                                 category = selectedCategory.name, priority = selectedPriority.name,
-                                dueDate = dueDate, reminderTime = reminderTime))
+                                dueDate = dueDate, reminderTime = reminderTime, alarmToneUri = alarmToneUri))
                         } else {
                             viewModel.addTask(Task(title = title.trim(), description = description.trim(),
                                 category = selectedCategory.name, priority = selectedPriority.name,
-                                dueDate = dueDate, reminderTime = reminderTime))
+                                dueDate = dueDate, reminderTime = reminderTime, alarmToneUri = alarmToneUri))
                         }
                         onNavigateBack()
                     }

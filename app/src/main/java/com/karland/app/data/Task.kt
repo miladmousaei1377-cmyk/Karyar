@@ -13,6 +13,7 @@ data class Task(
     val isCompleted: Boolean = false,
     val dueDate: Long? = null,
     val reminderTime: Long? = null,
+    val alarmToneUri: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

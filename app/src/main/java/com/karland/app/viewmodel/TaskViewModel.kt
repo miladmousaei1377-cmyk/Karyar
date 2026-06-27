@@ -80,12 +80,12 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addTask(task: Task) = viewModelScope.launch {
         val id = repository.insertTask(task)
-        task.reminderTime?.let { AlarmHelper.scheduleAlarm(getApplication(), id, task.title, it) }
+        task.reminderTime?.let { AlarmHelper.scheduleAlarm(getApplication(), id, task.title, it, task.alarmToneUri) }
     }
 
     fun updateTask(task: Task) = viewModelScope.launch {
         repository.updateTask(task.copy(updatedAt = System.currentTimeMillis()))
-        task.reminderTime?.let { AlarmHelper.scheduleAlarm(getApplication(), task.id, task.title, it) }
+        task.reminderTime?.let { AlarmHelper.scheduleAlarm(getApplication(), task.id, task.title, it, task.alarmToneUri) }
             ?: AlarmHelper.cancelAlarm(getApplication(), task.id)
     }
 
