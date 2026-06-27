@@ -56,7 +56,7 @@ fun AboutScreen(onNavigateBack: () -> Unit) {
             )
             Text("کارلند", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Text("مدیریت کارهای روزانه", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("نسخه ۱.۱.۰", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("نسخه ۱.۲.۰", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(Modifier.height(8.dp))
 
