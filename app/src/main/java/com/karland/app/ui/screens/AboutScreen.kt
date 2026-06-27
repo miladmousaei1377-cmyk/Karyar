@@ -1,6 +1,7 @@
 package com.karland.app.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,8 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.karland.app.R
@@ -22,6 +25,8 @@ import com.karland.app.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onNavigateBack: () -> Unit) {
+    val uriHandler = LocalUriHandler.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -64,7 +69,37 @@ fun AboutScreen(onNavigateBack: () -> Unit) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     AboutRow(Icons.Default.Person, "توسعه‌دهنده", "میلاد موسایی")
                     HorizontalDivider()
-                    AboutRow(Icons.Default.Email, "پشتیبانی", "miladmousaei1377@gmail.com")
+                    AboutRow(
+                        icon = Icons.Default.Email,
+                        label = "پشتیبانی",
+                        value = "miladmousaei1377@gmail.com",
+                        isLink = true,
+                        onClick = { uriHandler.openUri("mailto:miladmousaei1377@gmail.com") }
+                    )
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(2.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { uriHandler.openUri("https://cafebazaar.ir/app/com.karland.app") }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(Icons.Default.Star, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("کافه‌بازار", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "ثبت نظر و امتیاز نرم‌افزار",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
+                    Icon(Icons.Default.OpenInNew, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                 }
             }
 
@@ -86,12 +121,33 @@ fun AboutScreen(onNavigateBack: () -> Unit) {
 }
 
 @Composable
-private fun AboutRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+private fun AboutRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    isLink: Boolean = false,
+    onClick: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text(
+                value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = if (isLink) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                textDecoration = if (isLink) TextDecoration.Underline else TextDecoration.None
+            )
+        }
+        if (isLink) {
+            Icon(Icons.Default.OpenInNew, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
         }
     }
 }

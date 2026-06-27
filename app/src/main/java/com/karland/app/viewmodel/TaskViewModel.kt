@@ -59,13 +59,27 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     val onboardingCompleted: StateFlow<Boolean> = prefsRepo.onboardingCompleted
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val lastSeenVersionCode: StateFlow<Int> = prefsRepo.lastSeenVersionCode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), -1)
+
+    @Suppress("DEPRECATION")
+    val currentVersionCode: Int get() = try {
+        getApplication<Application>().packageManager
+            .getPackageInfo(getApplication<Application>().packageName, 0).versionCode
+    } catch (_: Exception) { 3 }
+
     // Survives Activity recreation so splash screen never replays after first launch.
     var splashShown: Boolean = false
         private set
 
     fun markSplashShown() { splashShown = true }
 
-    fun setOnboardingCompleted() = viewModelScope.launch { prefsRepo.setOnboardingCompleted() }
+    fun setOnboardingCompleted() = viewModelScope.launch {
+        prefsRepo.setOnboardingCompleted()
+        prefsRepo.markVersionSeen(currentVersionCode)
+    }
+
+    fun markVersionSeen() = viewModelScope.launch { prefsRepo.markVersionSeen(currentVersionCode) }
 
     fun importTasks(tasks: List<Task>) = viewModelScope.launch {
         tasks.forEach { repository.insertTask(it.copy(id = 0)) }
@@ -91,6 +105,12 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     fun toggleComplete(task: Task) = viewModelScope.launch {
         repository.updateTask(task.copy(isCompleted = !task.isCompleted, updatedAt = System.currentTimeMillis()))
+    }
+
+    fun completeTask(taskId: Long) = viewModelScope.launch {
+        repository.getTaskById(taskId)?.let { task ->
+            repository.updateTask(task.copy(isCompleted = true, updatedAt = System.currentTimeMillis()))
+        }
     }
 
     fun deleteTask(task: Task) = viewModelScope.launch {
